@@ -1,7 +1,7 @@
 # arduino-youtube-api
-A wrapper for the YouTube API for Arduino (works on ESP8266)
+A wrapper for the [YouTube API](https://developers.google.com/youtube/v3/docs/) for Arduino (works on ESP8266)
 
-Currently the only implemented method is getting the channel statistics but it can be easily extended.
+Currently the only implemented method is getting the channel statistics but it can be easily extended. Please raise an issue if there is a method you are looking for.
 
 ![Imgur](http://i.imgur.com/FmXyW4E.png)
 

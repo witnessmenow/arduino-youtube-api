@@ -1,5 +1,7 @@
-
 /*
+Copyright (c) 2017 Brian Lough. All right reserved.
+
+YoutubeApi - An Arduino wrapper for the YouTube API
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public

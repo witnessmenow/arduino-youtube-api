@@ -1,9 +1,7 @@
 /*
-Copyright (c) 2015 Giancarlo Bacchio. All right reserved.
+Copyright (c) 2017 Brian Lough. All right reserved.
 
-TelegramBot - Library to create your own Telegram Bot using
-ESP8266 on Arduino IDE.
-Ref. Library at https:github/esp8266/Arduino
+YoutubeApi - An Arduino wrapper for the YouTube API
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -50,10 +48,8 @@ class YoutubeApi
     String sendGetToYoutube(String command);
     bool getChannelStatistics(String channelId);
     channelStatistics channelStats;
-    const char* fingerprint = "3F:AE:17:DA:03:65:45:BE:CE:77:2F:8A:DC:5B:C9:08:98:7E:9E:E7";  //Telegram.org Certificate
 
   private:
-    //JsonObject * parseUpdates(String response);
     String _apiKey;
     Client *client;
     const int maxMessageLength = 1000;

@@ -79,9 +79,6 @@ String YoutubeApi::sendGetToYoutube(String command) {
 		}
 	}
 
-	//int lastCharIndex = body.lastIndexOf("}");
-
-	//return body.substring(0,lastCharIndex+1);
 	return body;
 }
 

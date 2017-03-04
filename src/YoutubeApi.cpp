@@ -31,7 +31,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
 	String body="";
 	bool finishedHeaders = false;
 	bool currentLineIsBlank = true;
-	long now;
+	unsigned long now;
 	bool avail;
 	// Connect with youtube api over ssl
 	if (client->connect(HOST, SSL_PORT)) {

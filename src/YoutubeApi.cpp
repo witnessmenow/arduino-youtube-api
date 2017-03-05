@@ -34,7 +34,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
 	unsigned long now;
 	bool avail;
 	// Connect with youtube api over ssl
-	if (client->connect(HOST, SSL_PORT)) {
+	if (client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
 		// Serial.println(".... connected to server");
 		String a="";
 		char c;
@@ -42,7 +42,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
 		client->println("GET "+command+"&key="+_apiKey);
 		now=millis();
 		avail=false;
-		while (millis()-now<1500) {
+		while (millis() - now < YTAPI_TIMEOUT) {
 			while (client->available()) {
 				char c = client->read();
 				//Serial.write(c);
@@ -83,7 +83,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
 }
 
 bool YoutubeApi::getChannelStatistics(String channelId){
-	String command="https://www.googleapis.com/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
+	String command="https://" YTAPI_HOST "/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
 	String response = sendGetToYoutube(command);       //recieve reply from youtube
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(response);

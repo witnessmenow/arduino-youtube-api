@@ -26,11 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #include <ArduinoJson.h>
 #include <Client.h>
 
-#define HOST "www.googleapis.com"
-#define SSL_PORT 443
-#define HANDLE_MESSAGES 1
-#define MAX_BUFFER_SIZE 1250
-
+#define YTAPI_HOST "www.googleapis.com"
+#define YTAPI_SSL_PORT 443
+#define YTAPI_TIMEOUT 1500
 
 
 struct channelStatistics{

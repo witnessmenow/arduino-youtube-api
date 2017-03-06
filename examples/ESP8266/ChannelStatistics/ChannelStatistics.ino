@@ -23,8 +23,8 @@ char password[] = "yyyy";  // your network key
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
-int api_mtbs = 60000; //mean time between api requests
-long api_lasttime;   //last time api request has been done
+unsigned long api_mtbs = 60000; //mean time between api requests
+unsigned long api_lasttime;   //last time api request has been done
 
 long subs = 0;
 
@@ -57,7 +57,7 @@ void setup() {
 
 void loop() {
 
-  if (millis() > api_lasttime + api_mtbs)  {
+  if (millis() - api_lasttime > api_mtbs)  {
     if(api.getChannelStatistics(CHANNEL_ID))
     {
       Serial.println("---------Stats---------");

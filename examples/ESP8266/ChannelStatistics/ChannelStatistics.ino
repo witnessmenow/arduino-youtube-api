@@ -1,23 +1,21 @@
-#include <YoutubeApi.h>
-
 /*******************************************************************
- *  An example of bot that echos back any messages received        *
+ *  Read YouTube Channel statistics from the YouTube API           *
  *                                                                 *
- *  written by Giacarlo Bacchio (Gianbacchio on Github)            *
- *  adapted by Brian Lough                                         *
+ *  By Brian Lough                                                 *
+ *  https://www.youtube.com/channel/UCezJOfu7OtqGzd5xrP3q6WA       *
  *******************************************************************/
 
-
+#include <YoutubeApi.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
+
+#include <ArduinoJson.h> // This Sketch doesn't technically need this, but the library does so it must be installed.
 
 //------- Replace the following! ------
 char ssid[] = "xxx";       // your network SSID (name)
 char password[] = "yyyy";  // your network key
 #define API_KEY "zzzz"  // your google apps API Token
-#define CHANNEL_ID "UCu7_D0o48KbfhpEohoP7YSQ" // makes up the url of channel
-
-
+#define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // makes up the url of channel
 
 
 WiFiClientSecure client;

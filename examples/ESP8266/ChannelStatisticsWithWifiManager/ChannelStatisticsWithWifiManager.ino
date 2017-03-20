@@ -143,7 +143,7 @@ void forceConfigMode() {
   WiFi.disconnect();
   Serial.println("Dq");
   delay(500);
-  ESP.reset();
+  ESP.restart();
   delay(5000);
 }
 

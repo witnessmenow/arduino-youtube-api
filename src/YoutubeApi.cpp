@@ -85,7 +85,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
 
 bool YoutubeApi::getChannelStatistics(String channelId){
 	String command="https://" YTAPI_HOST "/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
-	Serial.println(command);
+	//Serial.println(command);
 	String response = sendGetToYoutube(command);       //recieve reply from youtube
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(response);

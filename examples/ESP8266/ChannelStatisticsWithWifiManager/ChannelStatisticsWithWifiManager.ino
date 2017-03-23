@@ -82,7 +82,6 @@ void setup() {
     Serial.println("Forcing Config Mode");
     forceConfigMode();
   }
-  api = new YoutubeApi(apiKey, client);
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");

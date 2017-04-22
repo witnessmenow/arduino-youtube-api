@@ -21,7 +21,7 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(String clientId, String clientSecret, String refreshToken, Client &client)	{
+YoutubeApi::YoutubeApi(String clientId, String clientSecret, String refreshToken, Client &client) {
 	_clientId = clientId;
 	_clientSecret = clientSecret;
 	oAuth2Token.refreshToken = refreshToken;

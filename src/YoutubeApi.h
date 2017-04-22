@@ -28,10 +28,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
-#define YTAPI_TIMEOUT 1500
+#define YTAPI_TIMEOUT 2000
 
-
-struct channelStatistics{
+struct channelStatistics {
   long viewCount;
   long commentCount;
   long subscriberCount;
@@ -39,19 +38,34 @@ struct channelStatistics{
   long videoCount;
 };
 
+struct token {
+  String accessToken;
+  String tokenType;
+  int expiresIn;
+  String refreshToken;
+  unsigned long lastRefreshedAt;
+};
+
 class YoutubeApi
 {
   public:
-    YoutubeApi (String apiKey, Client &client);
-    String sendGetToYoutube(String command);
+    YoutubeApi(String clientId, String clientSecret, String refreshToken, Client &client);
     bool getChannelStatistics(String channelId);
+    String getMyRecentSubscribers();
+    String getMyRecentSubscribers(String pageToken);
     channelStatistics channelStats;
+    String myRecentSubscribers[3]; // Fixed number, above 4 seems to crash
 
   private:
-    String _apiKey;
+    String _clientId;
+    String _clientSecret;
     Client *client;
-    const int maxMessageLength = 1000;
+    token oAuth2Token;
+    const int maxMessageLength = 5000;
     bool checkForOkResponse(String response);
+    String sendGetToYoutube(String command);
+    String sendPostToYouTube(String page, String postData);
+    bool getAccessToken();
 };
 
 #endif

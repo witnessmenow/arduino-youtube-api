@@ -31,58 +31,14 @@ YoutubeApi::YoutubeApi(String clientId, String clientSecret, String refreshToken
 }
 
 String YoutubeApi::sendGetToYoutube(String command) {
-	String headers = "";
-	String body = "";
-	bool finishedHeaders = false;
-	bool currentLineIsBlank = true;
-	unsigned long now;
-	bool avail;
-
 	if(getAccessToken()) {
 		// Connect with youtube api over ssl
 		if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
-			String a = "";
-			char c;
-			int ch_count = 0;
 			command = "https://" YTAPI_HOST + command + "&access_token=" + oAuth2Token.accessToken;
 			client->println("GET " + command);
-			now = millis();
-			avail = false;
-			while(millis() - now < YTAPI_TIMEOUT) {
-				while(client->available()) {
-					// Allow body to be parsed before finishing
-					avail = finishedHeaders;
-					char c = client->read();
-
-					if(!finishedHeaders) {
-						if(currentLineIsBlank && c == '\n') {
-							finishedHeaders = true;
-						}
-						else {
-							headers = headers + c;
-						}
-					} else {
-						if(ch_count < maxMessageLength)  {
-							body = body+c;
-							ch_count++;
-						}
-					}
-
-					if(c == '\n') {
-						currentLineIsBlank = true;
-					} else if(c != '\r') {
-						currentLineIsBlank = false;
-					}
-				}
-				if(avail) {
-					// Serial.println("Body:");
-					// Serial.println(body);
-					// Serial.println("END");
-					break;
-				}
-			}
+			return readRequestResponse();
 		}
-		return body;
+		return "Failed to connect to YouTube.";
 	}
 	return "Failed to retrieve valid access token.";
 }
@@ -104,9 +60,13 @@ String YoutubeApi::sendPostToYouTube(String page, String postData) {
     client->println(postData.length());
     client->println();
     client->println(postData);
+		return readRequestResponse();
   }
+	return "Failed to connect to YouTube.";
+}
 
-  String headers = "";
+String YoutubeApi::readRequestResponse() {
+	String headers = "";
 	String body = "";
 	bool finishedHeaders = false;
 	bool currentLineIsBlank = true;

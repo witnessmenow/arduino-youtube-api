@@ -65,6 +65,7 @@ class YoutubeApi
     bool checkForOkResponse(String response);
     String sendGetToYoutube(String command);
     String sendPostToYouTube(String page, String postData);
+    String readRequestResponse();
     bool getAccessToken();
 };
 

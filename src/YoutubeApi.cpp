@@ -211,7 +211,6 @@ String YoutubeApi::getMyRecentSubscribers(String pageToken) {
 			for (int i = 0; i < root["items"].size(); i++) {
 				String subscriber = root["items"][i]["subscriberSnippet"]["title"];
 				myRecentSubscribers[i] = subscriber;
-				// Serial.println(subscriber);
 			}
 			return root["nextPageToken"];
 		}

@@ -41,12 +41,10 @@ String YoutubeApi::sendGetToYoutube(String command) {
 	if(getAccessToken()) {
 		// Connect with youtube api over ssl
 		if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
-			// Serial.println(".... connected to server");
 			String a = "";
 			char c;
 			int ch_count = 0;
 			command = "https://" YTAPI_HOST + command + "&access_token=" + oAuth2Token.accessToken;
-			// Serial.println(command);
 			client->println("GET " + command);
 			now = millis();
 			avail = false;
@@ -55,7 +53,6 @@ String YoutubeApi::sendGetToYoutube(String command) {
 					// Allow body to be parsed before finishing
 					avail = finishedHeaders;
 					char c = client->read();
-					//Serial.write(c);
 
 					if(!finishedHeaders) {
 						if(currentLineIsBlank && c == '\n') {
@@ -98,9 +95,7 @@ String YoutubeApi::sendGetToYoutube(String command) {
  * http://playground.arduino.cc/Code/WebClient
  **/
 String YoutubeApi::sendPostToYouTube(String page, String postData) {
-	// Serial.println("Doing POST request!");
   if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
-    // Serial.println("Connected to server!");
     client->println("POST " + page + " HTTP/1.1");
     client->println("Host: " YTAPI_HOST);
     client->println("Content-Type: application/x-www-form-urlencoded");

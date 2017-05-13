@@ -38,9 +38,9 @@ String YoutubeApi::sendGetToYoutube(String command) {
 			client->println("GET " + command);
 			return readRequestResponse();
 		}
-		return "Failed to connect to YouTube.";
+		return F("Failed to connect to YouTube.");
 	}
-	return "Failed to retrieve valid access token.";
+	return F("Failed to retrieve valid access token.");
 }
 
 /**
@@ -54,20 +54,20 @@ String YoutubeApi::sendPostToYouTube(String page, String postData) {
   if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
     client->println("POST " + page + " HTTP/1.1");
     client->println("Host: " YTAPI_HOST);
-    client->println("Content-Type: application/x-www-form-urlencoded");
-    client->println("Connection: close");
-    client->print("Content-Length: ");
+    client->println(F("Content-Type: application/x-www-form-urlencoded"));
+    client->println(F("Connection: close"));
+    client->print(F("Content-Length: "));
     client->println(postData.length());
     client->println();
     client->println(postData);
 		return readRequestResponse();
   }
-	return "Failed to connect to YouTube.";
+	return F("Failed to connect to YouTube.");
 }
 
 String YoutubeApi::readRequestResponse() {
-	String headers = "";
-	String body = "";
+	String headers = "";	// FIXME using a string is not a very good idea
+	String body = "";			// FIXME using a string is not a very good idea
 	bool finishedHeaders = false;
 	bool currentLineIsBlank = true;
 	unsigned long now;

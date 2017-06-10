@@ -23,7 +23,7 @@
 // https://github.com/bblanchon/ArduinoJson
 
 #include <WiFiManager.h>
-// For configuring the Wifi credentials without re-programing 
+// For configuring the Wifi credentials without re-programing
 // Availalbe on library manager (WiFiManager)
 // https://github.com/tzapu/WiFiManager
 
@@ -48,7 +48,7 @@ long subs = 0;
 // flag for saving data
 bool shouldSaveConfig = false;
 
-// Number of seconds after reset during which a 
+// Number of seconds after reset during which a
 // subseqent reset will be considered a double reset.
 // This sketch uses drd.stop() rather than relying on the timeout
 #define DRD_TIMEOUT 10
@@ -89,6 +89,7 @@ void setup() {
   loadConfig();
 
   WiFiManager wifiManager;
+  wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   // Adding an additional config on the WIFI manager webpage for the API Key and Channel ID

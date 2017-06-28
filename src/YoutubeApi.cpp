@@ -21,13 +21,13 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(String clientId, String clientSecret, String refreshToken, Client &client) {
+YoutubeApi::YoutubeApi(Client &client, String clientId, String clientSecret, String refreshToken) {
+	this->client = &client;
 	_clientId = clientId;
 	_clientSecret = clientSecret;
 	oAuth2Token.refreshToken = refreshToken;
 	oAuth2Token.expiresIn = 0;
 	oAuth2Token.lastRefreshedAt = 0;
-	this->client = &client;
 }
 
 String YoutubeApi::sendGetToYoutube(String command) {
@@ -66,8 +66,8 @@ String YoutubeApi::sendPostToYouTube(String page, String postData) {
 }
 
 String YoutubeApi::readRequestResponse() {
-	String headers = "";	// FIXME using a string is not a very good idea
-	String body = "";			// FIXME using a string is not a very good idea
+	String headers = "";
+	String body = "";
 	bool finishedHeaders = false;
 	bool currentLineIsBlank = true;
 	unsigned long now;
@@ -93,7 +93,7 @@ String YoutubeApi::readRequestResponse() {
         }
       } else {
         if(ch_count < maxMessageLength)  {
-          body = body+c;
+          body = body + c;
           ch_count++;
         }
       }
@@ -142,10 +142,10 @@ bool YoutubeApi::getChannelStatistics(String channelId) {
 }
 
 /**
- * This method returns the 3 most recent subscribers to the channel.
+ * This method returns the most recent subscribers to the channel.
  *
  * TODO This method should eventually be implemented as getRecentSubscribers()
- * with all the available YouTube API parameters.
+ * with all the available parameters documented in the YouTube API.
  *
  * The pageToken is the String for the next (or previous) set of subscribers.
  *
@@ -157,7 +157,12 @@ bool YoutubeApi::getChannelStatistics(String channelId) {
  * https://developers.google.com/youtube/v3/docs/subscriptions/list
  */
 String YoutubeApi::getMyRecentSubscribers(String pageToken) {
-	String command = "/youtube/v3/subscriptions?part=subscriberSnippet&myRecentSubscribers=true&maxResults=3&pageToken=" + pageToken;
+	// FIXME there is a bug in the youtube api that seems to ignore the pageToken
+	// and just returns the first page https://issuetracker.google.com/issues/35176305
+
+	// We specify which fields should be returned which minimizes the size of the JSON response
+	// and saves valuable memory space
+	String command = "/youtube/v3/subscriptions?part=subscriberSnippet&myRecentSubscribers=true&maxResults=" + String(sizeof(myRecentSubscribers)/sizeof(String)) + "&fields=items%2FsubscriberSnippet%2Ftitle%2CnextPageToken%2CprevPageToken&prevPageToken=" + pageToken;
 	String response = sendGetToYoutube(command);
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(response);

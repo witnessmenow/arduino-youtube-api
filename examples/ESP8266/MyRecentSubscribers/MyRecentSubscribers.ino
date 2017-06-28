@@ -47,6 +47,8 @@ void setup() {
   Serial.println("IP address: ");
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
+
+  api = new YoutubeApi(client, clientId, clientSecret, refreshToken);
 }
 
 void loop() {

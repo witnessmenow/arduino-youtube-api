@@ -49,12 +49,12 @@ struct token {
 class YoutubeApi
 {
   public:
-    YoutubeApi(String clientId, String clientSecret, String refreshToken, Client &client);
+    YoutubeApi(Client &client, String clientId, String clientSecret, String refreshToken);
     bool getChannelStatistics(String channelId);
     String getMyRecentSubscribers();
     String getMyRecentSubscribers(String pageToken);
     channelStatistics channelStats;
-    String myRecentSubscribers[3]; // Fixed number, above 4 seems to crash
+    String myRecentSubscribers[5]; // Fixed number for now, shouldn't go above 50
 
   private:
     String _clientId;

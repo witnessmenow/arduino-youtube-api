@@ -21,72 +21,104 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(String apiKey, Client &client)	{
-	_apiKey = apiKey;
+YoutubeApi::YoutubeApi(Client &client, String clientId, String clientSecret, String refreshToken) {
 	this->client = &client;
+	_clientId = clientId;
+	_clientSecret = clientSecret;
+	oAuth2Token.refreshToken = refreshToken;
+	oAuth2Token.expiresIn = 0;
+	oAuth2Token.lastRefreshedAt = 0;
 }
 
 String YoutubeApi::sendGetToYoutube(String command) {
-	String headers="";
-	String body="";
+	if(getAccessToken()) {
+		// Connect with youtube api over ssl
+		if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
+			command = "https://" YTAPI_HOST + command + "&access_token=" + oAuth2Token.accessToken;
+			client->println("GET " + command);
+			return readRequestResponse();
+		}
+		return F("Failed to connect to YouTube.");
+	}
+	return F("Failed to retrieve valid access token.");
+}
+
+/**
+ * This method sends a HTTP POST to the YouTube API host and is used for
+ * instance to refresh the OAuth2 access token.
+ *
+ * Reference:
+ * http://playground.arduino.cc/Code/WebClient
+ **/
+String YoutubeApi::sendPostToYouTube(String page, String postData) {
+  if(client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
+    client->println("POST " + page + " HTTP/1.1");
+    client->println("Host: " YTAPI_HOST);
+    client->println(F("Content-Type: application/x-www-form-urlencoded"));
+    client->println(F("Connection: close"));
+    client->print(F("Content-Length: "));
+    client->println(postData.length());
+    client->println();
+    client->println(postData);
+		return readRequestResponse();
+  }
+	return F("Failed to connect to YouTube.");
+}
+
+String YoutubeApi::readRequestResponse() {
+	String headers = "";
+	String body = "";
 	bool finishedHeaders = false;
 	bool currentLineIsBlank = true;
 	unsigned long now;
 	bool avail;
-	// Connect with youtube api over ssl
-	if (client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
-		// Serial.println(".... connected to server");
-		String a="";
-		char c;
-		int ch_count=0;
-		client->println("GET "+command+"&key="+_apiKey);
-		now=millis();
-		avail=false;
-		while (millis() - now < YTAPI_TIMEOUT) {
-			while (client->available()) {
+  String a = "";
+  char c;
+  int ch_count = 0;
+  now = millis();
+  avail = false;
 
-				// Allow body to be parsed before finishing
-				avail = finishedHeaders;
-				char c = client->read();
-				//Serial.write(c);
+  while(millis() - now < YTAPI_TIMEOUT) {
+    while(client->available()) {
+      // Allow body to be parsed before finishing
+      avail = finishedHeaders;
+      char c = client->read();
 
-				if(!finishedHeaders){
-					if (currentLineIsBlank && c == '\n') {
-						finishedHeaders = true;
-					}
-					else{
-						headers = headers + c;
-
-					}
-				} else {
-					if (ch_count < maxMessageLength)  {
-						body=body+c;
-						ch_count++;
-					}
-				}
-
-				if (c == '\n') {
-					currentLineIsBlank = true;
-				}else if (c != '\r') {
-					currentLineIsBlank = false;
-				}
-			}
-			if (avail) {
-				//Serial.println("Body:");
-				//Serial.println(body);
-				//Serial.println("END");
-				break;
-			}
-		}
-	}
-
+      if(!finishedHeaders) {
+        if(currentLineIsBlank && c == '\n') {
+          finishedHeaders = true;
+        }
+        else {
+          headers = headers + c;
+        }
+      } else {
+        if(ch_count < maxMessageLength)  {
+          body = body + c;
+          ch_count++;
+        }
+      }
+      if(c == '\n') {
+        currentLineIsBlank = true;
+      } else if(c != '\r') {
+        currentLineIsBlank = false;
+      }
+    }
+    if(avail) {
+      // Serial.println("Body:");
+      // Serial.println(body);
+      // Serial.println("END");
+      break;
+    }
+  }
 	return body;
 }
 
-bool YoutubeApi::getChannelStatistics(String channelId){
-	String command="https://" YTAPI_HOST "/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
-	//Serial.println(command);
-	String response = sendGetToYoutube(command);       //recieve reply from youtube
+/**
+ * https://developers.google.com/youtube/v3/docs/channels/list
+ */
+bool YoutubeApi::getChannelStatistics(String channelId) {
+	String command = "/youtube/v3/channels?part=statistics&id=" + channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
+	String response = sendGetToYoutube(command); //receive reply from youtube
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(response);
 	if(root.success()) {
@@ -106,6 +138,87 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 			return true;
 		}
 	}
-
 	return false;
+}
+
+/**
+ * This method returns the most recent subscribers to the channel.
+ *
+ * TODO This method should eventually be implemented as getRecentSubscribers()
+ * with all the available parameters documented in the YouTube API.
+ *
+ * The pageToken is the String for the next (or previous) set of subscribers.
+ *
+ * Return the next page string token if succesfull otherwise the error
+ * message that was returned by the YouTube API
+ *
+ * References
+ * https://www.googleapis.com/youtube/v3/subscriptions
+ * https://developers.google.com/youtube/v3/docs/subscriptions/list
+ */
+String YoutubeApi::getMyRecentSubscribers(String pageToken) {
+	// FIXME there is a bug in the youtube api that seems to ignore the pageToken
+	// and just returns the first page https://issuetracker.google.com/issues/35176305
+
+	// We specify which fields should be returned which minimizes the size of the JSON response
+	// and saves valuable memory space
+	String command = "/youtube/v3/subscriptions?part=subscriberSnippet&myRecentSubscribers=true&maxResults=" + String(sizeof(myRecentSubscribers)/sizeof(String)) + "&fields=items%2FsubscriberSnippet%2Ftitle%2CnextPageToken%2CprevPageToken&prevPageToken=" + pageToken;
+	String response = sendGetToYoutube(command);
+	DynamicJsonBuffer jsonBuffer;
+	JsonObject& root = jsonBuffer.parseObject(response);
+	if(root.success()) {
+		if (root.containsKey("items")) {
+			for (int i = 0; i < root["items"].size(); i++) {
+				String subscriber = root["items"][i]["subscriberSnippet"]["title"];
+				myRecentSubscribers[i] = subscriber;
+			}
+			return root["nextPageToken"];
+		}
+	}
+	String code = root["error"]["code"];
+	String message = root["error"]["message"];
+	return "error," + code + "," + message;
+}
+
+String YoutubeApi::getMyRecentSubscribers() {
+	return getMyRecentSubscribers("");
+}
+
+/**
+ * The access token is only valid for 3600 seconds (by default) before it needs
+ * to be refreshed.
+ */
+bool YoutubeApi::getAccessToken() {
+	unsigned long currentTime = millis();
+	unsigned long tokenExpiresAt = oAuth2Token.lastRefreshedAt + (oAuth2Token.expiresIn * 1000);
+
+	String page = "/oauth2/v4/token";		// https://developers.google.com/youtube/v3/guides/auth/devices
+	String myClientId(_clientId);	// TODO Is there a better way to turn char[] into a String?
+	String myClientSecret(_clientSecret);
+	String postData = "client_id=" + myClientId + "&client_secret=" + myClientSecret + "&refresh_token=" + oAuth2Token.refreshToken + "&grant_type=refresh_token";
+
+	// Only get a new access token if the old one is expired
+	if(currentTime > tokenExpiresAt) {
+		String response = sendPostToYouTube(page, postData);
+		DynamicJsonBuffer jsonBuffer;
+		JsonObject& root = jsonBuffer.parseObject(response);
+		if(root.success()) {
+			if(!root.containsKey("error")) {
+				String accessToken = root["access_token"];
+				String tokenType = root["token_type"];
+				int expiresIn = root["expires_in"];
+
+				oAuth2Token.accessToken = accessToken;
+				oAuth2Token.tokenType = tokenType;
+				oAuth2Token.expiresIn = expiresIn;
+				oAuth2Token.lastRefreshedAt = millis();
+
+				return true;
+			}
+			root.printTo(Serial);
+		}
+		return false;
+	}
+	// Serial.println("Don't need to refresh the token. Current access token is still valid!");
+	return true;
 }

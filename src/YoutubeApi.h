@@ -46,12 +46,14 @@ class YoutubeApi
     String sendGetToYoutube(String command);
     bool getChannelStatistics(String channelId);
     channelStatistics channelStats;
+    bool _debug = false;
 
   private:
     String _apiKey;
     Client *client;
     const int maxMessageLength = 1000;
     bool checkForOkResponse(String response);
+    void closeClient();
 };
 
 #endif

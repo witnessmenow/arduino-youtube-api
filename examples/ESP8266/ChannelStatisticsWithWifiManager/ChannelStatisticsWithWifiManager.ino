@@ -28,9 +28,11 @@ WiFiClientSecure client;
 YoutubeApi *api;
 
 unsigned long api_mtbs = 60000; //mean time between api requests
-unsigned long api_lasttime;   //last time api request has been done
+unsigned long api_lasttime = 60001;   //last time api request has been done
 
 long subs = 0;
+
+String channelstatus;
 
 // flag for saving data
 bool shouldSaveConfig = false;
@@ -169,6 +171,19 @@ void loop() {
       Serial.println("------------------------");
 
     }
+
+    /* This has a cost of 100 for every call so commented out by default
+    if(api.getChannelLive(CHANNEL_ID))
+    {
+      Serial.println("---------Live---------");
+      Serial.print("Live Status: ");
+      if (api.channelStats.channellive) {
+        channelstatus="Live";
+      } else channelstatus="Offline";
+      Serial.println(channelstatus);   8   
+    }
+    */
+    
     api_lasttime = millis();
   }
 }

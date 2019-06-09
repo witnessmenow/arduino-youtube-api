@@ -115,6 +115,23 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 	return false;
 }
 
+bool YoutubeApi::getChannelLive(String channelId){
+	String command="https://" YTAPI_HOST "/youtube/v3/search?part=snippet&channelId="+channelId+"&eventType=live&maxResults=1&type=video"; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
+	//Serial.println(command);
+	String response = sendGetToYoutube(command);       //recieve reply from youtube
+	DynamicJsonBuffer jsonBuffer;
+	JsonObject& root = jsonBuffer.parseObject(response);
+	if(root.success()) {
+		if (root.containsKey("items")) {
+			String channellive = root["items"][0]["snippet"]["liveBroadcastContent"];
+			if (channellive == "live") channelStats.channellive = true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void YoutubeApi::closeClient() {
 	if(client->connected()) {
 		if(_debug) { Serial.println(F("Closing client")); }

@@ -92,6 +92,11 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 	String command="/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
 	if(_debug) { Serial.println(F("Closing client")); }
 	String response = sendGetToYoutube(command);       //recieve reply from youtube
+	int firstJsonChar = response.indexOf('{');
+	if (firstJsonChar != 0)
+	{
+		response.remove(0, firstJsonChar);
+	}	
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(response);
 	if(root.success()) {

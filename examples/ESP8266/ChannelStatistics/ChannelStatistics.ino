@@ -1,28 +1,56 @@
 /*******************************************************************
- *  Read YouTube Channel statistics from the YouTube API           *
- *                                                                 *
- *  By Brian Lough                                                 *
- *  https://www.youtube.com/channel/UCezJOfu7OtqGzd5xrP3q6WA       *
+    Read YouTube Channel statistics from the YouTube API on
+    an ESP8266 and print them to the serial monitor
+                                                                  
+    Parts:
+    D1 Mini ESP8266 (or any ESP8266) * - http://s.click.aliexpress.com/e/uzFUnIe
+    * = Affilate
+   
+    If you find what I do useful and would like to support me,
+    please consider becoming a sponsor on Github
+    https://github.com/sponsors/witnessmenow/
+
+    Written by Brian Lough
+    YouTube: https://www.youtube.com/brianlough
+    Tindie: https://www.tindie.com/stores/brianlough/
+    Twitter: https://twitter.com/witnessmenow
  *******************************************************************/
 
-#include <YoutubeApi.h>
+// ----------------------------
+// Standard Libraries
+// ----------------------------
+
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 
-#include <ArduinoJson.h> // This Sketch doesn't technically need this, but the library does so it must be installed.
+// ----------------------------
+// Additional Libraries - each one of these will need to be installed.
+// ----------------------------
+
+#include <YoutubeApi.h>
+// Library for connecting to the Youtube API
+
+// Search for "youtube" in the Arduino Library Manager
+// https://github.com/witnessmenow/arduino-youtube-api
+
+#include <ArduinoJson.h>
+// Library used for parsing Json from the API responses
+
+// Search for "Arduino Json" in the Arduino Library manager
+// https://github.com/bblanchon/ArduinoJson
 
 //------- Replace the following! ------
 char ssid[] = "xxx";       // your network SSID (name)
 char password[] = "yyyy";  // your network key
 #define API_KEY "zzzz"  // your google apps API Token
 #define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // makes up the url of channel
-
+//------- ---------------------- ------
 
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
-unsigned long api_mtbs = 60000; //mean time between api requests
-unsigned long api_lasttime;   //last time api request has been done
+unsigned long timeBetweenRequests = 60000;
+unsigned long nextRunTime;
 
 long subs = 0;
 
@@ -50,12 +78,16 @@ void setup() {
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
 
+  // Required if you are using ESP8266 V2.5 or above
+  client.setInsecure();
 
+  // If you want to enable some extra debugging
+  api._debug = true;
 }
 
 void loop() {
 
-  if (millis() - api_lasttime > api_mtbs)  {
+  if (millis() > nextRunTime)  {
     if(api.getChannelStatistics(CHANNEL_ID))
     {
       Serial.println("---------Stats---------");
@@ -73,6 +105,6 @@ void loop() {
       Serial.println("------------------------");
 
     }
-    api_lasttime = millis();
+    nextRunTime = millis() + timeBetweenRequests;
   }
 }

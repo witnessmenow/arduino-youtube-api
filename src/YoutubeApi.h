@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017 Brian Lough. All right reserved.
+Copyright (c) 2020 Brian Lough. All right reserved.
 
 YoutubeApi - An Arduino wrapper for the YouTube API
 
@@ -17,16 +17,6 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
-
-#if defined(__GNUC__) || defined(__clang__)
-#define DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define DEPRECATED __declspec(deprecated)
-#else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define DEPRECATED
-#endif
-
 
 #ifndef YoutubeApi_h
 #define YoutubeApi_h

@@ -1,5 +1,6 @@
 /*******************************************************************
-    Read YouTube Channel statistics from the YouTube API           
+    Read YouTube Channel statistics from the YouTube API on
+    an ESP8266 and print them to the serial monitor
                                                                   
     Parts:
     D1 Mini ESP8266 (or any ESP8266) * - http://s.click.aliexpress.com/e/uzFUnIe
@@ -79,6 +80,9 @@ void setup() {
 
   // Required if you are using ESP8266 V2.5 or above
   client.setInsecure();
+
+  // If you want to enable some extra debugging
+  api._debug = true;
 }
 
 void loop() {

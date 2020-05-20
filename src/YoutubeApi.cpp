@@ -71,7 +71,6 @@ int YoutubeApi::sendGetToYoutube(char *command) {
 
 bool YoutubeApi::getChannelStatistics(String channelId){
 
-    Serial.println("Deprecated, user a char* rather than String");
 	int strLen = channelId.length() + 1; 
 	char tempStr[strLen];
 	channelId.toCharArray(tempStr, strLen);

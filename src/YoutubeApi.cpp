@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2017 Brian Lough. All right reserved.
+   Copyright (c) 2020 Brian Lough. All right reserved.
 
    YoutubeApi - An Arduino wrapper for the YouTube API
 
@@ -22,97 +22,143 @@
 #include "YoutubeApi.h"
 
 YoutubeApi::YoutubeApi(String apiKey, Client &client)	{
+	int strLen = apiKey.length() + 1; 
+	char tempStr[strLen];
+	apiKey.toCharArray(tempStr, strLen);
+
+	YoutubeApi(tempStr, client);
+}
+
+YoutubeApi::YoutubeApi(char *apiKey, Client &client)	{
 	_apiKey = apiKey;
 	this->client = &client;
 }
 
-String YoutubeApi::sendGetToYoutube(String command) {
-	String headers="";
-	String body="";
-	bool finishedHeaders = false;
-	bool currentLineIsBlank = true;
-	unsigned long now;
-	bool avail;
-	// Connect with youtube api over ssl
-	if (client->connect(YTAPI_HOST, YTAPI_SSL_PORT)) {
-		if(_debug) { Serial.println(".... connected to server"); }
-		String a="";
-		char c;
-		int ch_count=0;
-		client->println("GET " + command + "&key=" + _apiKey + " HTTP/1.1");
-		client->print("HOST: ");
-		client->println(YTAPI_HOST);
-		client->println();
-		now=millis();
-		avail=false;
-		while (millis() - now < YTAPI_TIMEOUT) {
-			while (client->available()) {
+int YoutubeApi::sendGetToYoutube(char *command) {
+	client->flush();
+    client->setTimeout(YTAPI_TIMEOUT);
+	if (!client->connect(YTAPI_HOST, YTAPI_SSL_PORT))
+    {
+        Serial.println(F("Connection failed"));
+        return false;
+    }
+	// give the esp a breather
+    yield();
 
-				// Allow body to be parsed before finishing
-				avail = finishedHeaders;
-				char c = client->read();
-				//Serial.write(c);
+    // Send HTTP request
+    client->print(F("GET "));
+    client->print(command);
+    client->println(F(" HTTP/1.1"));
 
-				if(!finishedHeaders){
-					if (currentLineIsBlank && c == '\n') {
-						finishedHeaders = true;
-					}
-					else{
-						headers = headers + c;
+	//Headers
+    client->print(F("Host: "));
+    client->println(YTAPI_HOST);
 
-					}
-				} else {
-					if (ch_count < maxMessageLength)  {
-						body=body+c;
-						ch_count++;
-					}
-				}
+    client->println(F("Cache-Control: no-cache"));
 
-				if (c == '\n') {
-					currentLineIsBlank = true;
-				}else if (c != '\r') {
-					currentLineIsBlank = false;
-				}
-			}
-			if (avail) {
-				if(_debug) {
-					Serial.println("Body:");
-					Serial.println(body);
-					Serial.println("END");
-				}
-				break;
-			}
-		}
-	}
-	closeClient();
-	return body;
+	if (client->println() == 0)
+    {
+        Serial.println(F("Failed to send request"));
+        return -1;
+    }
+
+	int statusCode = getHttpStatusCode();
+    
+    // Let the caller of this method parse the JSon from the client
+    skipHeaders();
+    return statusCode;
 }
 
 bool YoutubeApi::getChannelStatistics(String channelId){
-	String command="/youtube/v3/channels?part=statistics&id="+channelId; //If you can't find it(for example if you have a custom url) look here: https://www.youtube.com/account_advanced
-	if(_debug) { Serial.println(F("Closing client")); }
-	String response = sendGetToYoutube(command);       //recieve reply from youtube
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.parseObject(response);
-	if(root.success()) {
-		if (root.containsKey("items")) {
-			long subscriberCount = root["items"][0]["statistics"]["subscriberCount"];
-			long viewCount = root["items"][0]["statistics"]["viewCount"];
-			long commentCount = root["items"][0]["statistics"]["commentCount"];
-			long hiddenSubscriberCount = root["items"][0]["statistics"]["hiddenSubscriberCount"];
-			long videoCount = root["items"][0]["statistics"]["videoCount"];
 
-			channelStats.viewCount = viewCount;
-			channelStats.subscriberCount = subscriberCount;
-			channelStats.commentCount = commentCount;
-			channelStats.hiddenSubscriberCount = hiddenSubscriberCount;
-			channelStats.videoCount = videoCount;
+	int strLen = channelId.length() + 1; 
+	char tempStr[strLen];
+	channelId.toCharArray(tempStr, strLen);
 
-			return true;
-		}
-	}
+	return getChannelStatistics(tempStr);
+}
 
-	return false;
+bool YoutubeApi::getChannelStatistics(char *channelId){
+	char command[150] = YTAPI_CHANNEL_ENDPOINT;
+    strcat(command, "?part=statistics&id=%s");
+    sprintf(command, command, channelId);
+
+    if (_debug)
+    {
+        Serial.println(command);
+    }
+
+	bool hasError = true;
+
+    // Get from https://arduinojson.org/v6/assistant/
+    const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+							+ JSON_OBJECT_SIZE(2) 
+							+ 2*JSON_OBJECT_SIZE(4) 
+							+ JSON_OBJECT_SIZE(5);
+
+    if (sendGetToYoutube(command) == 200)
+    {
+        // Allocate DynamicJsonDocument
+        DynamicJsonDocument doc(bufferSize);
+
+        // Parse JSON object
+        DeserializationError error = deserializeJson(doc, *client);
+        if (!error)
+        {
+			hasError = false;
+
+            JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+			channelStats.viewCount = itemStatistics["viewCount"].as<long>();
+			channelStats.subscriberCount = itemStatistics["subscriberCount"].as<long>();
+			channelStats.commentCount = itemStatistics["commentCount"].as<long>();
+			channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
+			channelStats.videoCount = itemStatistics["videoCount"].as<long>();
+        }
+        else
+        {
+            Serial.print(F("deserializeJson() failed with code "));
+            Serial.println(error.c_str());
+        }
+    }
+    closeClient();
+
+	return hasError;
+}
+
+void YoutubeApi::skipHeaders()
+{
+    // Skip HTTP headers
+    char endOfHeaders[] = "\r\n\r\n";
+    if (!client->find(endOfHeaders))
+    {
+        Serial.println(F("Invalid response"));
+        return;
+    }
+
+    // Was getting stray characters between the headers and the body
+    // This should toss them away
+    while (client->available() && client->peek() != '{')
+    {
+        char c = 0;
+        client->readBytes(&c, 1);
+        if (_debug)
+        {
+            Serial.print("Tossing an unexpected character: ");
+            Serial.println(c);
+        }
+    }
+}
+
+int YoutubeApi::getHttpStatusCode()
+{
+    // Check HTTP status
+    if(client->find("HTTP/1.1")){
+        int statusCode = client->parseInt();
+        return statusCode;
+    } 
+
+    return -1;
 }
 
 void YoutubeApi::closeClient() {

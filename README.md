@@ -5,19 +5,21 @@ Currently the only implemented method is getting the channel statistics but it c
 
 ![Imgur](http://i.imgur.com/FmXyW4E.png)
 
+### Support what I do!
+
+I have created a lot of different Arduino libraries that I hope people can make use of. [If you enjoy my work, please consider becoming a Github sponsor!](https://github.com/sponsors/witnessmenow/)
+
 ## Getting a Google Apps API key (Required!)
 
 * Create an application [here](https://console.developers.google.com)
 * On the API Manager section, go to "Credentials" and create a new API key
 * Enable your application to communicate the YouTube Api [here](https://console.developers.google.com/apis/api/youtube)
 * Make sure the following URL works for you in your browser (Change the key at the end!):
-https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCu7_D0o48KbfhpEohoP7YSQ&key=PutYourNewlyGeneratedKeyHere
+https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCezJOfu7OtqGzd5xrP3q6WA&key=PutYourNewlyGeneratedKeyHere
 
 ## Installing
 
-The downloaded code can be included as a new library into the IDE selecting the menu:
-
-     Sketch / include Library / Add .Zip library
+The easiest way to install this library is through the aduino library manager, just search for "Youtube"
 
 You also have to install the ArduinoJson library written by [Benoît Blanchon](https://github.com/bblanchon). Search for it on the Arduino Library manager or get it from [here](https://github.com/bblanchon/ArduinoJson).
 

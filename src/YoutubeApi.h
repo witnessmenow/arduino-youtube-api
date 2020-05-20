@@ -18,6 +18,15 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+#if defined(__GNUC__) || defined(__clang__)
+#define DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED
+#endif
+
 
 #ifndef YoutubeApi_h
 #define YoutubeApi_h
@@ -30,6 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #define YTAPI_SSL_PORT 443
 #define YTAPI_TIMEOUT 1500
 
+#define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 
 struct channelStatistics{
   long viewCount;
@@ -42,17 +52,19 @@ struct channelStatistics{
 class YoutubeApi
 {
   public:
-    YoutubeApi (String apiKey, Client &client);
-    String sendGetToYoutube(String command);
-    bool getChannelStatistics(String channelId);
+    YoutubeApi (char *apiKey, Client &client);
+    DEPRECATED YoutubeApi (String apiKey, Client &client);
+    int sendGetToYoutube(char *command);
+    bool getChannelStatistics(char *channelId);
+    DEPRECATED bool getChannelStatistics(String channelId);
     channelStatistics channelStats;
     bool _debug = false;
 
   private:
-    String _apiKey;
+    char *_apiKey;
     Client *client;
-    const int maxMessageLength = 1000;
-    bool checkForOkResponse(String response);
+    int getHttpStatusCode();
+    void skipHeaders();
     void closeClient();
 };
 

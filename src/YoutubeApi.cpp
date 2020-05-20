@@ -71,6 +71,7 @@ int YoutubeApi::sendGetToYoutube(char *command) {
 
 bool YoutubeApi::getChannelStatistics(String channelId){
 
+    Serial.println("Deprecated, user a char* rather than String");
 	int strLen = channelId.length() + 1; 
 	char tempStr[strLen];
 	channelId.toCharArray(tempStr, strLen);
@@ -82,6 +83,8 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
     strcat(command, "?part=statistics&id=%s");
     sprintf(command, command, channelId);
+    strcat(command, "&key=%s");
+    sprintf(command, command, _apiKey);
 
     if (_debug)
     {
@@ -96,7 +99,9 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
 							+ 2*JSON_OBJECT_SIZE(4) 
 							+ JSON_OBJECT_SIZE(5);
 
-    if (sendGetToYoutube(command) == 200)
+    int httpStatus = sendGetToYoutube(command);
+
+    if (httpStatus == 200)
     {
         // Allocate DynamicJsonDocument
         DynamicJsonDocument doc(bufferSize);
@@ -120,6 +125,9 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
             Serial.print(F("deserializeJson() failed with code "));
             Serial.println(error.c_str());
         }
+    } else {
+        Serial.print("Unexpected HTTP Status Code: ");
+        Serial.println(httpStatus);
     }
     closeClient();
 

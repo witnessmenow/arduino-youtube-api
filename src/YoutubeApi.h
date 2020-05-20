@@ -53,10 +53,10 @@ class YoutubeApi
 {
   public:
     YoutubeApi (char *apiKey, Client &client);
-    DEPRECATED YoutubeApi (String apiKey, Client &client);
+    YoutubeApi (String apiKey, Client &client);
     int sendGetToYoutube(char *command);
     bool getChannelStatistics(char *channelId);
-    DEPRECATED bool getChannelStatistics(String channelId);
+    bool getChannelStatistics(String channelId);
     channelStatistics channelStats;
     bool _debug = false;
 

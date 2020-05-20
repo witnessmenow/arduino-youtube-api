@@ -81,23 +81,23 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 
 bool YoutubeApi::getChannelStatistics(char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
-    strcat(command, "?part=statistics&id=%s");
-    sprintf(command, command, channelId);
-    strcat(command, "&key=%s");
-    sprintf(command, command, _apiKey);
+    char params[120];
+    sprintf(params, "?part=statistics&id=%s&key=%s", channelId, _apiKey);
+    strcat(command, params);
 
     if (_debug)
     {
         Serial.println(command);
     }
 
-	bool hasError = true;
+	bool wasSuccessful = false;
 
     // Get from https://arduinojson.org/v6/assistant/
     const size_t bufferSize = JSON_ARRAY_SIZE(1) 
 							+ JSON_OBJECT_SIZE(2) 
 							+ 2*JSON_OBJECT_SIZE(4) 
-							+ JSON_OBJECT_SIZE(5);
+							+ JSON_OBJECT_SIZE(5)
+                            + 330;
 
     int httpStatus = sendGetToYoutube(command);
 
@@ -110,7 +110,7 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
         DeserializationError error = deserializeJson(doc, *client);
         if (!error)
         {
-			hasError = false;
+			wasSuccessful = true;
 
             JsonObject itemStatistics = doc["items"][0]["statistics"];
 
@@ -131,7 +131,7 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
     }
     closeClient();
 
-	return hasError;
+	return wasSuccessful;
 }
 
 void YoutubeApi::skipHeaders()

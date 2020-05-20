@@ -108,24 +108,24 @@ bool loadConfig() {
 
   configFile.readBytes(buf.get(), size);
 
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& json = jsonBuffer.parseObject(buf.get());
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, buf.get());
 
-  if (!json.success()) {
-    Serial.println("Failed to parse config file");
+  if (error) {
+    Serial.print("Failed to parse config file: ");
+    Serial.println(error.c_str());
     return false;
   }
 
-  strcpy(apiKey, json["apiKey"]);
-  strcpy(channelId, json["channelId"]);
+  strcpy(apiKey, doc["apiKey"]);
+  strcpy(channelId, doc["channelId"]);
   return true;
 }
 
 bool saveConfig() {
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
-  json["apiKey"] = apiKey;
-  json["channelId"] = channelId;
+  StaticJsonDocument<200> doc;
+  doc["apiKey"] = apiKey;
+  doc["channelId"] = channelId;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -133,7 +133,7 @@ bool saveConfig() {
     return false;
   }
 
-  json.printTo(configFile);
+  serializeJson(doc, configFile);
   return true;
 }
 

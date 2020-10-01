@@ -1,8 +1,6 @@
 # Arduino YouTube API Library
 A wrapper for the [YouTube API](https://developers.google.com/youtube/v3/docs/) for Arduino. Works on both ESP8266 and ESP32.
 
-Currently the only implemented method is getting channel statistics, but the library can be easily extended. Please raise an issue if there is a method you are looking for.
-
 ![Imgur](http://i.imgur.com/FmXyW4E.png)
 
 ### Support what I do!
@@ -47,6 +45,9 @@ then once you're connected to WiFi you can start requesting data from the API:
 
 See [the examples](examples) for more details.
 
+## Supported Data Methods
+
+Currently the only implemented method is getting channel statistics, but the library can be easily extended. Please raise an issue if there is a method you are looking for.
 
 ## License
 

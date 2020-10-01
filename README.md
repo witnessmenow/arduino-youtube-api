@@ -1,5 +1,5 @@
 # Arduino YouTube API Library
-[![Build Status](https://travis-ci.org/witnessmenow/arduino-youtube-api.svg?branch=master)](https://travis-ci.org/witnessmenow/arduino-youtube-api)
+[![arduino-library-badge](https://www.ardu-badge.com/badge/YoutubeApi.svg?)](https://www.ardu-badge.com/YoutubeApi) [![Build Status](https://travis-ci.org/witnessmenow/arduino-youtube-api.svg?branch=master)](https://travis-ci.org/witnessmenow/arduino-youtube-api)
 
 A wrapper for the [YouTube API](https://developers.google.com/youtube/v3/docs/) for Arduino. Works on both ESP8266 and ESP32.
 

@@ -38,12 +38,14 @@ and pass it an API key and an SSL client:
 
 then once you're connected to WiFi you can start requesting data from the API:
 
+    #define CHANNEL_ID UCezJOfu7OtqGzd5xrP3q6WA
+
     if(api.getChannelStatistics(CHANNEL_ID)) {
         Serial.print("Subscriber Count: ");
         Serial.println(api.channelStats.subscriberCount);
     }
 
-See [the examples](examples) for more details.
+If you don't know it, you can find your own YouTube channel ID [here](https://www.youtube.com/account_advanced). See [the examples](examples) for more details on how to use the library.
 
 ## Supported Data Methods
 

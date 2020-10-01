@@ -46,3 +46,8 @@ then once you're connected to WiFi you can start requesting data from the API:
     }
 
 See [the examples](examples) for more details.
+
+
+## License
+
+This library is licensed under the terms of [the GNU General Public License v2.0](LICENSE.md).

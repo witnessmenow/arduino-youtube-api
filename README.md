@@ -36,7 +36,7 @@ and pass it an API key and an SSL client:
 
     #define API_KEY "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     WiFiClientSecure client; //For ESP8266 and ESP32 boards
-    YoutubeApi bot(API_KEY, client);
+    YoutubeApi api(API_KEY, client);
 
 then once you're connected to WiFi you can start requesting data from the API:
 

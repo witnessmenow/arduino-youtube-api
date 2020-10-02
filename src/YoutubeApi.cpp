@@ -31,6 +31,10 @@ YoutubeApi::YoutubeApi(const char* key, Client &client)
 	: apiKey(key), client(client)
 {}
 
+YoutubeApi::YoutubeApi(String &apiKey, Client &client) 
+	: YoutubeApi(apiKey.c_str(), client)
+{}
+
 int YoutubeApi::sendGetToYoutube(const char *command) {
 	client.flush();
 	client.setTimeout(YTAPI_TIMEOUT);

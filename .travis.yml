@@ -10,9 +10,7 @@ cache:
 
 env:
     - SCRIPT=platformioSingle EXAMPLE_NAME=ChannelStatistics EXAMPLE_FOLDER=/ BOARDTYPE=ESP8266 BOARD=d1_mini
-    - SCRIPT=platformioSingle EXAMPLE_NAME=ChannelStatisticsWithWifiManager EXAMPLE_FOLDER=/ BOARDTYPE=ESP8266 BOARD=d1_mini
-    - SCRIPT=platformioSingle EXAMPLE_NAME=ChannelStatisticsWithWifiManagerAndDoubleReset EXAMPLE_FOLDER=/ BOARDTYPE=ESP8266 BOARD=d1_mini
-
+    - SCRIPT=platformioSingle EXAMPLE_NAME=ChannelStatistics EXAMPLE_FOLDER=/ BOARDTYPE=ESP32 BOARD=tinypico
 
 install:
     - pip install -U platformio

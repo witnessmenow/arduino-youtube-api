@@ -95,8 +95,6 @@ void loop() {
       Serial.println(api.channelStats.subscriberCount);
       Serial.print("View Count: ");
       Serial.println(api.channelStats.viewCount);
-      Serial.print("Comment Count: ");
-      Serial.println(api.channelStats.commentCount);
       Serial.print("Video Count: ");
       Serial.println(api.channelStats.videoCount);
       // Probably not needed :)

@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 struct channelStatistics{
   long viewCount;
-  long commentCount;
+  long commentCount; /* DEPRECATED */
   long subscriberCount;
   bool hiddenSubscriberCount;
   long videoCount;

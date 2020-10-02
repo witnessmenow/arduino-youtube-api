@@ -29,12 +29,12 @@ YoutubeApi::YoutubeApi(String apiKey, Client &client)	{
 	YoutubeApi(tempStr, client);
 }
 
-YoutubeApi::YoutubeApi(char *apiKey, Client &client)	{
+YoutubeApi::YoutubeApi(const char *apiKey, Client &client)	{
 	_apiKey = apiKey;
 	this->client = &client;
 }
 
-int YoutubeApi::sendGetToYoutube(char *command) {
+int YoutubeApi::sendGetToYoutube(const char *command) {
 	client->flush();
     client->setTimeout(YTAPI_TIMEOUT);
 	if (!client->connect(YTAPI_HOST, YTAPI_SSL_PORT))
@@ -78,7 +78,7 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 	return getChannelStatistics(tempStr);
 }
 
-bool YoutubeApi::getChannelStatistics(char *channelId){
+bool YoutubeApi::getChannelStatistics(const char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
     char params[120];
     sprintf(params, "?part=statistics&id=%s&key=%s", channelId, _apiKey);

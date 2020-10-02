@@ -22,13 +22,13 @@
 #include "YoutubeApi.h"
 
 YoutubeApi::YoutubeApi(const char* key, Client &client)
-	: apiKey(key), client(&client)
+	: apiKey(key), client(client)
 {}
 
 int YoutubeApi::sendGetToYoutube(const char *command) {
-	client->flush();
-    client->setTimeout(YTAPI_TIMEOUT);
-	if (!client->connect(YTAPI_HOST, YTAPI_SSL_PORT))
+	client.flush();
+    client.setTimeout(YTAPI_TIMEOUT);
+	if (!client.connect(YTAPI_HOST, YTAPI_SSL_PORT))
     {
         Serial.println(F("Connection failed"));
         return false;
@@ -37,17 +37,17 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
     yield();
 
     // Send HTTP request
-    client->print(F("GET "));
-    client->print(command);
-    client->println(F(" HTTP/1.1"));
+    client.print(F("GET "));
+    client.print(command);
+    client.println(F(" HTTP/1.1"));
 
 	//Headers
-    client->print(F("Host: "));
-    client->println(YTAPI_HOST);
+    client.print(F("Host: "));
+    client.println(YTAPI_HOST);
 
-    client->println(F("Cache-Control: no-cache"));
+    client.println(F("Cache-Control: no-cache"));
 
-	if (client->println() == 0)
+	if (client.println() == 0)
     {
         Serial.println(F("Failed to send request"));
         return -1;
@@ -88,7 +88,7 @@ bool YoutubeApi::getChannelStatistics(const char *channelId){
         DynamicJsonDocument doc(bufferSize);
 
         // Parse JSON object
-        DeserializationError error = deserializeJson(doc, *client);
+        DeserializationError error = deserializeJson(doc, client);
         if (!error)
         {
 			wasSuccessful = true;
@@ -123,7 +123,7 @@ void YoutubeApi::skipHeaders()
 {
     // Skip HTTP headers
     char endOfHeaders[] = "\r\n\r\n";
-    if (!client->find(endOfHeaders))
+    if (!client.find(endOfHeaders))
     {
         Serial.println(F("Invalid response"));
         return;
@@ -131,10 +131,10 @@ void YoutubeApi::skipHeaders()
 
     // Was getting stray characters between the headers and the body
     // This should toss them away
-    while (client->available() && client->peek() != '{')
+    while (client.available() && client.peek() != '{')
     {
         char c = 0;
-        client->readBytes(&c, 1);
+        client.readBytes(&c, 1);
         if (_debug)
         {
             Serial.print("Tossing an unexpected character: ");
@@ -146,8 +146,8 @@ void YoutubeApi::skipHeaders()
 int YoutubeApi::getHttpStatusCode()
 {
     // Check HTTP status
-    if(client->find("HTTP/1.1")){
-        int statusCode = client->parseInt();
+    if(client.find("HTTP/1.1")){
+        int statusCode = client.parseInt();
         return statusCode;
     } 
 
@@ -155,8 +155,8 @@ int YoutubeApi::getHttpStatusCode()
 }
 
 void YoutubeApi::closeClient() {
-	if(client->connected()) {
+	if(client.connected()) {
 		if(_debug) { Serial.println(F("Closing client")); }
-		client->stop();
+		client.stop();
 	}
 }

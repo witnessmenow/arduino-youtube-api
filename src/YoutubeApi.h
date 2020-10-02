@@ -51,7 +51,7 @@ class YoutubeApi
 
   private:
     const char *apiKey;
-    Client *client;
+    Client &client;
     int getHttpStatusCode();
     void skipHeaders();
     void closeClient();

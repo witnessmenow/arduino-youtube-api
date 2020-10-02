@@ -21,14 +21,6 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(String apiKey, Client &client)	{
-	int strLen = apiKey.length() + 1; 
-	char tempStr[strLen];
-	apiKey.toCharArray(tempStr, strLen);
-
-	YoutubeApi(tempStr, client);
-}
-
 YoutubeApi::YoutubeApi(const char *apiKey, Client &client)	{
 	_apiKey = apiKey;
 	this->client = &client;

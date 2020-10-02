@@ -61,15 +61,6 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
     return statusCode;
 }
 
-bool YoutubeApi::getChannelStatistics(String channelId){
-
-	int strLen = channelId.length() + 1; 
-	char tempStr[strLen];
-	channelId.toCharArray(tempStr, strLen);
-
-	return getChannelStatistics(tempStr);
-}
-
 bool YoutubeApi::getChannelStatistics(const char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
     char params[120];
@@ -123,6 +114,10 @@ bool YoutubeApi::getChannelStatistics(const char *channelId){
     closeClient();
 
 	return wasSuccessful;
+}
+
+bool YoutubeApi::getChannelStatistics(String channelId) {
+	return getChannelStatistics(channelId.c_str());
 }
 
 void YoutubeApi::skipHeaders()

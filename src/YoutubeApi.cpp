@@ -27,90 +27,90 @@ YoutubeApi::YoutubeApi(const char* key, Client &client)
 
 int YoutubeApi::sendGetToYoutube(const char *command) {
 	client.flush();
-    client.setTimeout(YTAPI_TIMEOUT);
+	client.setTimeout(YTAPI_TIMEOUT);
 	if (!client.connect(YTAPI_HOST, YTAPI_SSL_PORT))
-    {
-        Serial.println(F("Connection failed"));
-        return false;
-    }
+	{
+		Serial.println(F("Connection failed"));
+		return false;
+	}
 	// give the esp a breather
-    yield();
+	yield();
 
-    // Send HTTP request
-    client.print(F("GET "));
-    client.print(command);
-    client.println(F(" HTTP/1.1"));
+	// Send HTTP request
+	client.print(F("GET "));
+	client.print(command);
+	client.println(F(" HTTP/1.1"));
 
 	//Headers
-    client.print(F("Host: "));
-    client.println(YTAPI_HOST);
+	client.print(F("Host: "));
+	client.println(YTAPI_HOST);
 
-    client.println(F("Cache-Control: no-cache"));
+	client.println(F("Cache-Control: no-cache"));
 
 	if (client.println() == 0)
-    {
-        Serial.println(F("Failed to send request"));
-        return -1;
-    }
+	{
+		Serial.println(F("Failed to send request"));
+		return -1;
+	}
 
 	int statusCode = getHttpStatusCode();
-    
-    // Let the caller of this method parse the JSon from the client
-    skipHeaders();
-    return statusCode;
+
+	// Let the caller of this method parse the JSon from the client
+	skipHeaders();
+	return statusCode;
 }
 
-bool YoutubeApi::getChannelStatistics(const char *channelId){
+bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
-    char params[120];
-    sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey);
-    strcat(command, params);
+	char params[120];
+	sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey);
+	strcat(command, params);
 
-    if (_debug)
-    {
-        Serial.println(command);
-    }
+	if (_debug)
+	{
+		Serial.println(command);
+	}
 
 	bool wasSuccessful = false;
 
-    // Get from https://arduinojson.org/v6/assistant/
-    const size_t bufferSize = JSON_ARRAY_SIZE(1) 
-							+ JSON_OBJECT_SIZE(2) 
-							+ 2*JSON_OBJECT_SIZE(4) 
-							+ JSON_OBJECT_SIZE(5)
-                            + 330;
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+	                        + JSON_OBJECT_SIZE(2) 
+	                        + 2*JSON_OBJECT_SIZE(4) 
+	                        + JSON_OBJECT_SIZE(5)
+	                        + 330;
 
-    int httpStatus = sendGetToYoutube(command);
+	int httpStatus = sendGetToYoutube(command);
 
-    if (httpStatus == 200)
-    {
-        // Allocate DynamicJsonDocument
-        DynamicJsonDocument doc(bufferSize);
+	if (httpStatus == 200)
+	{
+		// Allocate DynamicJsonDocument
+		DynamicJsonDocument doc(bufferSize);
 
-        // Parse JSON object
-        DeserializationError error = deserializeJson(doc, client);
-        if (!error)
-        {
+		// Parse JSON object
+		DeserializationError error = deserializeJson(doc, client);
+		if (!error)
+		{
 			wasSuccessful = true;
 
-            JsonObject itemStatistics = doc["items"][0]["statistics"];
+			JsonObject itemStatistics = doc["items"][0]["statistics"];
 
 			channelStats.viewCount = itemStatistics["viewCount"].as<long>();
 			channelStats.subscriberCount = itemStatistics["subscriberCount"].as<long>();
 			channelStats.commentCount = itemStatistics["commentCount"].as<long>();
 			channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
 			channelStats.videoCount = itemStatistics["videoCount"].as<long>();
-        }
-        else
-        {
-            Serial.print(F("deserializeJson() failed with code "));
-            Serial.println(error.c_str());
-        }
-    } else {
-        Serial.print("Unexpected HTTP Status Code: ");
-        Serial.println(httpStatus);
-    }
-    closeClient();
+		}
+		else
+		{
+			Serial.print(F("deserializeJson() failed with code "));
+			Serial.println(error.c_str());
+		}
+	} else {
+		Serial.print("Unexpected HTTP Status Code: ");
+		Serial.println(httpStatus);
+	}
+	closeClient();
 
 	return wasSuccessful;
 }
@@ -119,39 +119,37 @@ bool YoutubeApi::getChannelStatistics(String channelId) {
 	return getChannelStatistics(channelId.c_str());
 }
 
-void YoutubeApi::skipHeaders()
-{
-    // Skip HTTP headers
-    char endOfHeaders[] = "\r\n\r\n";
-    if (!client.find(endOfHeaders))
-    {
-        Serial.println(F("Invalid response"));
-        return;
-    }
+void YoutubeApi::skipHeaders() {
+	// Skip HTTP headers
+	char endOfHeaders[] = "\r\n\r\n";
+	if (!client.find(endOfHeaders))
+	{
+		Serial.println(F("Invalid response"));
+		return;
+	}
 
-    // Was getting stray characters between the headers and the body
-    // This should toss them away
-    while (client.available() && client.peek() != '{')
-    {
-        char c = 0;
-        client.readBytes(&c, 1);
-        if (_debug)
-        {
-            Serial.print("Tossing an unexpected character: ");
-            Serial.println(c);
-        }
-    }
+	// Was getting stray characters between the headers and the body
+	// This should toss them away
+	while (client.available() && client.peek() != '{')
+	{
+		char c = 0;
+		client.readBytes(&c, 1);
+		if (_debug)
+		{
+			Serial.print("Tossing an unexpected character: ");
+			Serial.println(c);
+		}
+	}
 }
 
-int YoutubeApi::getHttpStatusCode()
-{
-    // Check HTTP status
-    if(client.find("HTTP/1.1")){
-        int statusCode = client.parseInt();
-        return statusCode;
-    } 
+int YoutubeApi::getHttpStatusCode() {
+	// Check HTTP status
+	if(client.find("HTTP/1.1")){
+		int statusCode = client.parseInt();
+		return statusCode;
+	} 
 
-    return -1;
+	return -1;
 }
 
 void YoutubeApi::closeClient() {

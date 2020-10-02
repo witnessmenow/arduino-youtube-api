@@ -31,30 +31,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 
-struct channelStatistics{
-  long viewCount;
-  long commentCount;
-  long subscriberCount;
-  bool hiddenSubscriberCount;
-  long videoCount;
+struct channelStatistics {
+	long viewCount;
+	long commentCount;
+	long subscriberCount;
+	bool hiddenSubscriberCount;
+	long videoCount;
 };
 
 class YoutubeApi
 {
-  public:
-    YoutubeApi (const char *key, Client &client);
-    int sendGetToYoutube(const char *command);
-    bool getChannelStatistics(const char *channelId);
-    bool getChannelStatistics(String channelId);
-    channelStatistics channelStats;
-    bool _debug = false;
+	public:
+		YoutubeApi (const char *key, Client &client);
+		int sendGetToYoutube(const char *command);
+		bool getChannelStatistics(const char *channelId);
+		bool getChannelStatistics(String channelId);
+		channelStatistics channelStats;
+		bool _debug = false;
 
-  private:
-    const char *apiKey;
-    Client &client;
-    int getHttpStatusCode();
-    void skipHeaders();
-    void closeClient();
+	private:
+		const char *apiKey;
+		Client &client;
+		int getHttpStatusCode();
+		void skipHeaders();
+		void closeClient();
 };
 
 #endif

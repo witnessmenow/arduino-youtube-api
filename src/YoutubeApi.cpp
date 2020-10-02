@@ -21,10 +21,9 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(const char * key, Client &client)	{
-	apiKey = key;
-	this->client = &client;
-}
+YoutubeApi::YoutubeApi(const char* key, Client &client)
+	: apiKey(key), client(&client)
+{}
 
 int YoutubeApi::sendGetToYoutube(const char *command) {
 	client->flush();

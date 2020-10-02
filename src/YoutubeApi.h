@@ -42,7 +42,7 @@ struct channelStatistics{
 class YoutubeApi
 {
   public:
-    YoutubeApi (const char *apiKey, Client &client);
+    YoutubeApi (const char *key, Client &client);
     int sendGetToYoutube(const char *command);
     bool getChannelStatistics(const char *channelId);
     bool getChannelStatistics(String channelId);
@@ -50,7 +50,7 @@ class YoutubeApi
     bool _debug = false;
 
   private:
-    const char *_apiKey;
+    const char *apiKey;
     Client *client;
     int getHttpStatusCode();
     void skipHeaders();

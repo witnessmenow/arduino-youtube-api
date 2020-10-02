@@ -21,8 +21,8 @@
 
 #include "YoutubeApi.h"
 
-YoutubeApi::YoutubeApi(const char *apiKey, Client &client)	{
-	_apiKey = apiKey;
+YoutubeApi::YoutubeApi(const char * key, Client &client)	{
+	apiKey = key;
 	this->client = &client;
 }
 
@@ -64,7 +64,7 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
 bool YoutubeApi::getChannelStatistics(const char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
     char params[120];
-    sprintf(params, "?part=statistics&id=%s&key=%s", channelId, _apiKey);
+    sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey);
     strcat(command, params);
 
     if (_debug)

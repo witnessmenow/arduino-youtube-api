@@ -1,11 +1,14 @@
 /*******************************************************************
-    Read YouTube Channel statistics from the YouTube API on
-    an ESP8266 and print them to the serial monitor
-                                                                  
-    Parts:
-    D1 Mini ESP8266 (or any ESP8266) * - http://s.click.aliexpress.com/e/uzFUnIe
-    * = Affilate
-   
+    Read YouTube Channel statistics from the YouTube API
+    and print them to the serial monitor
+
+    Compatible Boards:
+    * Any ESP8266 board
+    * Any ESP32 board
+
+    Recommended Board: D1 Mini ESP8266
+    http://s.click.aliexpress.com/e/uzFUnIe (affiliate)
+
     If you find what I do useful and would like to support me,
     please consider becoming a sponsor on Github
     https://github.com/sponsors/witnessmenow/
@@ -20,7 +23,12 @@
 // Standard Libraries
 // ----------------------------
 
-#include <ESP8266WiFi.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+#endif
+
 #include <WiFiClientSecure.h>
 
 // ----------------------------
@@ -78,8 +86,10 @@ void setup() {
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
 
+  #ifdef ESP8266
   // Required if you are using ESP8266 V2.5 or above
   client.setInsecure();
+  #endif
 
   // If you want to enable some extra debugging
   api._debug = true;

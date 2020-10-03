@@ -58,7 +58,7 @@ WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
 unsigned long timeBetweenRequests = 60000;
-unsigned long nextRunTime;
+unsigned long lastRunTime;
 
 long subs = 0;
 
@@ -95,7 +95,8 @@ void setup() {
 }
 
 void loop() {
-	if (millis() > nextRunTime)  {
+	if (millis() - lastRunTime >= timeBetweenRequests) {
+		lastRunTime = millis();
 		if(api.getChannelStatistics(CHANNEL_ID)) {
 			Serial.println("---------Stats---------");
 			Serial.print("Subscriber Count: ");
@@ -109,6 +110,5 @@ void loop() {
 			//Serial.println(api.channelStats.hiddenSubscriberCount);
 			Serial.println("------------------------");
 		}
-		nextRunTime = millis() + timeBetweenRequests;
 	}
 }

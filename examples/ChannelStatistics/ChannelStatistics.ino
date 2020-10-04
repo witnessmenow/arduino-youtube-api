@@ -32,26 +32,24 @@
 #include <WiFiClientSecure.h>
 
 // ----------------------------
-// Additional Libraries - each one of these will need to be installed.
+// Additional Libraries - each of these will need to be installed
 // ----------------------------
 
-#include <YoutubeApi.h>
-// Library for connecting to the Youtube API
-
-// Search for "youtube" in the Arduino Library Manager
+// Library for connecting to the YouTube API
 // https://github.com/witnessmenow/arduino-youtube-api
+// (search for "youtube" in the Arduino Library Manager)
+#include <YoutubeApi.h>
 
-#include <ArduinoJson.h>
 // Library used for parsing Json from the API responses
-
-// Search for "Arduino Json" in the Arduino Library manager
 // https://github.com/bblanchon/ArduinoJson
+// (search for "Arduino Json" in the Arduino Library Manager)
+#include <ArduinoJson.h>
 
 //------- Replace the following! ------
 char ssid[] = "xxx";       // your network SSID (name)
 char password[] = "yyyy";  // your network key
-#define API_KEY "zzzz"  // your google apps API Token
-#define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // makes up the url of channel
+#define API_KEY "zzzz"     // your Google API key
+#define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // part of the channel url
 //------- ---------------------- ------
 
 WiFiClientSecure client;
@@ -65,13 +63,13 @@ long subs = 0;
 void setup() {
 	Serial.begin(115200);
 
-	// Set WiFi to station mode and disconnect from an AP if it was Previously
-	// connected
+	// Set WiFi to 'station' mode and disconnect
+	// from the AP if it was previously connected
 	WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
 	delay(100);
 
-	// Attempt to connect to Wifi network:
+	// Connect to the WiFi network
 	Serial.print("Connecting Wifi: ");
 	Serial.println(ssid);
 	WiFi.begin(ssid, password);
@@ -97,17 +95,23 @@ void setup() {
 void loop() {
 	if (millis() - lastRunTime >= timeBetweenRequests) {
 		lastRunTime = millis();
+
 		if(api.getChannelStatistics(CHANNEL_ID)) {
 			Serial.println("---------Stats---------");
+
 			Serial.print("Subscriber Count: ");
 			Serial.println(api.channelStats.subscriberCount);
+
 			Serial.print("View Count: ");
 			Serial.println(api.channelStats.viewCount);
+
 			Serial.print("Video Count: ");
 			Serial.println(api.channelStats.videoCount);
+
 			// Probably not needed :)
 			//Serial.print("hiddenSubscriberCount: ");
 			//Serial.println(api.channelStats.hiddenSubscriberCount);
+
 			Serial.println("------------------------");
 		}
 	}

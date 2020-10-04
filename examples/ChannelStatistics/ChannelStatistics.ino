@@ -70,16 +70,15 @@ void setup() {
 	delay(100);
 
 	// Connect to the WiFi network
-	Serial.print("Connecting Wifi: ");
+	Serial.print("\nConnecting to WiFi: ");
 	Serial.println(ssid);
 	WiFi.begin(ssid, password);
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
 		delay(500);
 	}
-	Serial.println("");
-	Serial.println("WiFi connected");
-	Serial.println("IP address: ");
+	Serial.println("\nWiFi connected!");
+	Serial.print("IP address: ");
 	IPAddress ip = WiFi.localIP();
 	Serial.println(ip);
 
@@ -97,7 +96,7 @@ void loop() {
 		lastRunTime = millis();
 
 		if(api.getChannelStatistics(CHANNEL_ID)) {
-			Serial.println("---------Stats---------");
+			Serial.println("\n---------Stats---------");
 
 			Serial.print("Subscriber Count: ");
 			Serial.println(api.channelStats.subscriberCount);

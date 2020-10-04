@@ -88,8 +88,8 @@ void setup() {
 	client.setInsecure();
 	#endif
 
-	// If you want to enable some extra debugging
-	api._debug = true;
+	// Uncomment for extra debugging info
+	// api._debug = true;
 }
 
 void loop() {

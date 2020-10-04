@@ -57,8 +57,8 @@ char password[] = "yyyy";  // your network key
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
-unsigned long timeBetweenRequests = 60000;
-unsigned long lastRunTime;
+unsigned long timeBetweenRequests = 60 * 1000;  // 60 seconds, in milliseconds
+unsigned long lastRunTime = 0 - timeBetweenRequests;  // guarantee run on first call
 
 long subs = 0;
 

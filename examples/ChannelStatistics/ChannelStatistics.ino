@@ -46,9 +46,9 @@
 #include <ArduinoJson.h>
 
 //------- Replace the following! ------
-char ssid[] = "xxx";       // your network SSID (name)
-char password[] = "yyyy";  // your network key
-#define API_KEY "zzzz"     // your Google API key
+const char ssid[] = "xxx";       // your network SSID (name)
+const char password[] = "yyyy";  // your network key
+#define API_KEY "zzzz"           // your Google API key
 #define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // part of the channel url
 //------- ---------------------- ------
 

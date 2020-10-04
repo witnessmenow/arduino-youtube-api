@@ -1,0 +1,34 @@
+#######################################
+# Syntax Coloring Map For Arduino YouTube API Library
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+# Library
+YoutubeApi	KEYWORD1
+
+# API Data
+channelStatistics	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+# API Member Functions
+sendGetToYoutube	KEYWORD2
+getChannelStatistics	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+# Library Constants
+YTAPI_HOST	LITERAL1
+YTAPI_SSL_PORT	LITERAL1
+YTAPI_TIMEOUT	LITERAL1

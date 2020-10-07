@@ -40,7 +40,7 @@ and pass it an API key and an SSL client:
 
 then once you're connected to WiFi you can start requesting data from the API:
 
-    #define CHANNEL_ID UCezJOfu7OtqGzd5xrP3q6WA
+    #define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA"
 
     if(api.getChannelStatistics(CHANNEL_ID)) {
         Serial.print("Subscriber Count: ");

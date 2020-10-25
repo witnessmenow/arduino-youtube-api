@@ -83,6 +83,14 @@ bool YoutubeApi::getChannelStatistics(String channelId){
 
 	return getChannelStatistics(tempStr);
 }
+bool YoutubeApi::getVideoStatistics(String videoId){
+
+	int strLen = videoId.length() + 1; 
+	char tempStr[strLen];
+	videoId.toCharArray(tempStr, strLen);
+
+	return getVideoStatistics(tempStr);
+}
 
 bool YoutubeApi::getChannelStatistics(char *channelId){
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
@@ -124,6 +132,60 @@ bool YoutubeApi::getChannelStatistics(char *channelId){
 			channelStats.commentCount = itemStatistics["commentCount"].as<long>();
 			channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
 			channelStats.videoCount = itemStatistics["videoCount"].as<long>();
+        }
+        else
+        {
+            Serial.print(F("deserializeJson() failed with code "));
+            Serial.println(error.c_str());
+        }
+    } else {
+        Serial.print("Unexpected HTTP Status Code: ");
+        Serial.println(httpStatus);
+    }
+    closeClient();
+
+	return wasSuccessful;
+}
+
+bool YoutubeApi::getVideoStatistics(char *videoId){
+	char command[150] = YTAPI_VIDEO_ENDPOINT;
+    char params[120];
+    sprintf(params, "?part=statistics&id=%s&key=%s", videoId, _apiKey);
+    strcat(command, params);
+
+    if (_debug)
+    {
+        Serial.println(command);
+    }
+
+	bool wasSuccessful = false;
+
+    // Get from https://arduinojson.org/v6/assistant/
+    const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+							+ JSON_OBJECT_SIZE(2) 
+							+ 2*JSON_OBJECT_SIZE(4) 
+							+ JSON_OBJECT_SIZE(5)
+                            + 330;
+
+    int httpStatus = sendGetToYoutube(command);
+
+    if (httpStatus == 200)
+    {
+        // Allocate DynamicJsonDocument
+        DynamicJsonDocument doc(bufferSize);
+
+        // Parse JSON object
+        DeserializationError error = deserializeJson(doc, *client);
+        if (!error)
+        {
+			wasSuccessful = true;
+
+            JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+			videoStats.viewCount = itemStatistics["viewCount"].as<long>();
+			videoStats.likeCount = itemStatistics["likeCount"].as<long>();
+			videoStats.commentCount = itemStatistics["commentCount"].as<long>();
+			videoStats.dislikeCount = itemStatistics["dislikeCount"].as<long>();
         }
         else
         {

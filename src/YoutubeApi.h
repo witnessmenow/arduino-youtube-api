@@ -36,6 +36,7 @@
 #define YTAPI_TIMEOUT 1500
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
+#define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
 
 struct channelStatistics{
   long viewCount;
@@ -43,6 +44,13 @@ struct channelStatistics{
   long subscriberCount;
   bool hiddenSubscriberCount;
   long videoCount;
+};
+
+struct videoStatistics{
+	long viewCount;
+	long commentCount;
+	long likeCount;
+	long dislikeCount;
 };
 
 class YoutubeApi

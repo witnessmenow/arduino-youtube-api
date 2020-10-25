@@ -61,6 +61,8 @@ class YoutubeApi
     int sendGetToYoutube(char *command);
     bool getChannelStatistics(char *channelId);
     bool getChannelStatistics(String channelId);
+	bool getVideoStatistics(char *videoId);
+	bool getVideoStatistics(String videoId);
     channelStatistics channelStats;
 	videoStatistics videoStats;
     bool _debug = false;

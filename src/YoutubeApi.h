@@ -62,6 +62,7 @@ class YoutubeApi
     bool getChannelStatistics(char *channelId);
     bool getChannelStatistics(String channelId);
     channelStatistics channelStats;
+	videoStatistics videoStats;
     bool _debug = false;
 
   private:

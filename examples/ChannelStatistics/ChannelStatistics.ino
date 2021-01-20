@@ -58,8 +58,6 @@ YoutubeApi api(API_KEY, client);
 unsigned long timeBetweenRequests = 60 * 1000;  // 60 seconds, in milliseconds
 unsigned long lastRunTime = 0 - timeBetweenRequests;  // guarantee run on first call
 
-long subs = 0;
-
 void setup() {
 	Serial.begin(115200);
 

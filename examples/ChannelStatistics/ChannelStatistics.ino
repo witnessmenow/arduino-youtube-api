@@ -56,7 +56,6 @@ WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
 unsigned long timeBetweenRequests = 60 * 1000;  // 60 seconds, in milliseconds
-unsigned long lastRunTime = 0 - timeBetweenRequests;  // guarantee run on first call
 
 void setup() {
 	Serial.begin(115200);
@@ -90,26 +89,23 @@ void setup() {
 }
 
 void loop() {
-	if (millis() - lastRunTime >= timeBetweenRequests) {
-		lastRunTime = millis();
+	if(api.getChannelStatistics(CHANNEL_ID)) {
+		Serial.println("\n---------Stats---------");
 
-		if(api.getChannelStatistics(CHANNEL_ID)) {
-			Serial.println("\n---------Stats---------");
+		Serial.print("Subscriber Count: ");
+		Serial.println(api.channelStats.subscriberCount);
 
-			Serial.print("Subscriber Count: ");
-			Serial.println(api.channelStats.subscriberCount);
+		Serial.print("View Count: ");
+		Serial.println(api.channelStats.viewCount);
 
-			Serial.print("View Count: ");
-			Serial.println(api.channelStats.viewCount);
+		Serial.print("Video Count: ");
+		Serial.println(api.channelStats.videoCount);
 
-			Serial.print("Video Count: ");
-			Serial.println(api.channelStats.videoCount);
+		// Probably not needed :)
+		//Serial.print("hiddenSubscriberCount: ");
+		//Serial.println(api.channelStats.hiddenSubscriberCount);
 
-			// Probably not needed :)
-			//Serial.print("hiddenSubscriberCount: ");
-			//Serial.println(api.channelStats.hiddenSubscriberCount);
-
-			Serial.println("------------------------");
-		}
+		Serial.println("------------------------");
 	}
+	delay(timeBetweenRequests);
 }

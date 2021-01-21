@@ -51,6 +51,7 @@ class YoutubeApi
 		YoutubeApi(const char *key, Client &client);
 		YoutubeApi(const String& apiKey, Client& client);
 		int sendGetToYoutube(const char *command);
+		int sendGetToYoutube(const String& command);
 		bool getChannelStatistics(const char *channelId);
 		bool getChannelStatistics(const String& channelId);
 		channelStatistics channelStats;

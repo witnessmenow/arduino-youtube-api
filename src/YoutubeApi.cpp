@@ -70,6 +70,10 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
 	return statusCode;
 }
 
+int YoutubeApi::sendGetToYoutube(const String& command) {
+	return sendGetToYoutube(command.c_str());
+}
+
 bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
 	char params[120];

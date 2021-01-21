@@ -32,7 +32,7 @@ YoutubeApi::YoutubeApi(const char* key, Client &client)
 {}
 
 YoutubeApi::YoutubeApi(const String &apiKey, Client &client) 
-	: YoutubeApi(apiKey.c_str(), client)
+	: YoutubeApi(apiKey.c_str(), client)  // passing the key as c-string to force a copy
 {}
 
 int YoutubeApi::sendGetToYoutube(const char *command) {
@@ -73,7 +73,7 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
 bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	char command[150] = YTAPI_CHANNEL_ENDPOINT;
 	char params[120];
-	sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey);
+	sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey.c_str());
 	strcat(command, params);
 
 	if (_debug)

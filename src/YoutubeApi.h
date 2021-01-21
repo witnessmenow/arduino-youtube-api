@@ -49,10 +49,10 @@ class YoutubeApi
 {
 	public:
 		YoutubeApi (const char *key, Client &client);
-		YoutubeApi(String& apiKey, Client& client);
+		YoutubeApi(const String& apiKey, Client& client);
 		int sendGetToYoutube(const char *command);
 		bool getChannelStatistics(const char *channelId);
-		bool getChannelStatistics(String channelId);
+		bool getChannelStatistics(const String& channelId);
 		channelStatistics channelStats;
 		bool _debug = false;
 

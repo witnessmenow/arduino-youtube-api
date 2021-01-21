@@ -31,7 +31,7 @@ YoutubeApi::YoutubeApi(const char* key, Client &client)
 	: apiKey(key), client(client)
 {}
 
-YoutubeApi::YoutubeApi(String &apiKey, Client &client) 
+YoutubeApi::YoutubeApi(const String &apiKey, Client &client) 
 	: YoutubeApi(apiKey.c_str(), client)
 {}
 
@@ -125,7 +125,7 @@ bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	return wasSuccessful;
 }
 
-bool YoutubeApi::getChannelStatistics(String channelId) {
+bool YoutubeApi::getChannelStatistics(const String& channelId) {
 	return getChannelStatistics(channelId.c_str());
 }
 

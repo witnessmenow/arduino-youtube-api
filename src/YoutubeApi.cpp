@@ -190,6 +190,14 @@ bool YoutubeApi::getVideoStatistics(const String& videoId){
 	return getVideoStatistics(videoId.c_str());
 }
 
+
+bool YoutubeApi::getVideoInfo(const char *videoId){
+	
+}
+bool YoutubeApi::getVideoInfo(const String& videoId){
+	return getVideoInfo(videoId.c_str());
+}
+
 void YoutubeApi::skipHeaders() {
 	// Skip HTTP headers
 	char endOfHeaders[] = "\r\n\r\n";

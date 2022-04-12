@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Client.h>
+#include <ctime>
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
@@ -38,6 +39,8 @@
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
 
+#define YT_VIDEO_TITLE_MAX_LENGTH 100
+
 struct channelStatistics {
 	long viewCount;
 	long commentCount;  /* DEPRECATED */
@@ -45,6 +48,16 @@ struct channelStatistics {
 	bool hiddenSubscriberCount;
 	long videoCount;
 };
+
+// some of the most important informations about a video
+struct videoInformation{
+	char videoTitle[YT_VIDEO_TITLE_MAX_LENGTH + 1];
+	tm videoDuration;
+	tm publishedAt;
+	int categoryId;
+	char defaultLanguage[4];
+};
+
 
 struct videoStatistics {
 	long viewCount;
@@ -65,8 +78,11 @@ class YoutubeApi
 		bool getChannelStatistics(const String& channelId);
 		bool getVideoStatistics(const char *videoId);
 		bool getVideoStatistics(const String& videoId);
+		bool getVideoInfo(const char *videoId);
+		bool getVideoInfo(const String& videoId);
 		channelStatistics channelStats;
 		videoStatistics videoStats;
+		videoInformation videoInfo;
 		bool _debug = false;
 
 	private:

@@ -36,6 +36,7 @@
 #define YTAPI_TIMEOUT 1500
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
+#define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
 
 struct channelStatistics {
 	long viewCount;
@@ -43,6 +44,14 @@ struct channelStatistics {
 	long subscriberCount;
 	bool hiddenSubscriberCount;
 	long videoCount;
+};
+
+struct videoStatistics {
+	long viewCount;
+	long commentCount;
+	long likeCount;
+//	long dislikeCount;
+//	In Memory of the old dislike count.	
 };
 
 class YoutubeApi
@@ -54,7 +63,10 @@ class YoutubeApi
 		int sendGetToYoutube(const String& command);
 		bool getChannelStatistics(const char *channelId);
 		bool getChannelStatistics(const String& channelId);
+		bool getVideoStatistics(const char *videoId);
+		bool getVideoStatistics(const String& videoId);
 		channelStatistics channelStats;
+		videoStatistics videoStats;
 		bool _debug = false;
 
 	private:

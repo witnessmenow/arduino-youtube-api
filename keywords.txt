@@ -11,6 +11,7 @@ YoutubeApi	KEYWORD1
 
 # API Data
 channelStatistics	KEYWORD1
+videoStatistics KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

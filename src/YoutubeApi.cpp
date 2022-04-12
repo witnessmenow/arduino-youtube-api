@@ -133,6 +133,63 @@ bool YoutubeApi::getChannelStatistics(const String& channelId) {
 	return getChannelStatistics(channelId.c_str());
 }
 
+bool YoutubeApi::getVideoStatistics(const char *videoId){
+	char command[150] = YTAPI_VIDEO_ENDPOINT;
+	char params[120];
+	sprintf(params, "?part=statistics&id=%s&key=%s", videoId, apiKey.c_str());
+	strcat(command, params);
+
+	if (_debug)
+	{
+		Serial.println(command);
+	}
+
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+	                        + JSON_OBJECT_SIZE(2) 
+	                        + 2*JSON_OBJECT_SIZE(4) 
+	                        + JSON_OBJECT_SIZE(5)
+	                        + 330;
+
+	int httpStatus = sendGetToYoutube(command);
+
+	if (httpStatus == 200)
+	{
+		// Allocate DynamicJsonDocument
+		DynamicJsonDocument doc(bufferSize);
+
+		// Parse JSON object
+		DeserializationError error = deserializeJson(doc, client);
+		if (!error)
+		{
+			wasSuccessful = true;
+
+			JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+			videoStats.viewCount = itemStatistics["viewCount"].as<long>();
+			videoStats.likeCount = itemStatistics["likeCount"].as<long>();
+			videoStats.commentCount= itemStatistics["commentCount"].as<long>();
+		}
+		else
+		{
+			Serial.print(F("deserializeJson() failed with code "));
+			Serial.println(error.c_str());
+		}
+	} else {
+		Serial.print("Unexpected HTTP Status Code: ");
+		Serial.println(httpStatus);
+	}
+	closeClient();
+
+	return wasSuccessful;
+}
+
+bool YoutubeApi::getVideoStatistics(const String& videoId){
+	return getVideoStatistics(videoId.c_str());
+}
+
 void YoutubeApi::skipHeaders() {
 	// Skip HTTP headers
 	char endOfHeaders[] = "\r\n\r\n";

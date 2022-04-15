@@ -49,13 +49,13 @@ struct channelStatistics {
 	long videoCount;
 };
 
-// some of the most important informations about a video
-struct videoInformation{
-	char videoTitle[YT_VIDEO_TITLE_MAX_LENGTH + 1];
-	tm videoDuration;
-	tm publishedAt;
-	int categoryId;
-	char defaultLanguage[4];
+
+struct contentDetails{
+	tm duration;
+	char dimension[3];
+	char defintion[3];
+	bool caption;
+	bool licensedContent;
 };
 
 
@@ -78,16 +78,17 @@ class YoutubeApi
 		bool getChannelStatistics(const String& channelId);
 		bool getVideoStatistics(const char *videoId);
 		bool getVideoStatistics(const String& videoId);
-		bool getVideoInfo(const char *videoId);
-		bool getVideoInfo(const String& videoId);
+		bool getContentDetails(const char *videoId);
+		bool getContentDetails(const String& videoId);
 		channelStatistics channelStats;
 		videoStatistics videoStats;
-		videoInformation videoInfo;
+		contentDetails contentDets;
 		bool _debug = false;
 
 	private:
 		const String apiKey;
 		Client &client;
+		tm parseDuration(const char *duration);
 		int getHttpStatusCode();
 		void skipHeaders();
 		void closeClient();

@@ -553,13 +553,25 @@ bool YoutubeApi::getSnippet(const char *videoId){
 			snip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
 			snip.categoryId = itemsSnippet["categoryId"].as<int>();
 
-			checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());		
+			checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());
 			checksum += allocAndCopy(&snip.title, itemsSnippet["title"].as<const char*>());
 			checksum += allocAndCopy(&snip.description, itemsSnippet["description"].as<const char*>());
 			checksum += allocAndCopy(&snip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
 			checksum += allocAndCopy(&snip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
-			checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
-			checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+
+			// language informations appears to be optional, so it is being checked if it is in response
+			// if not, a placeholder will be set
+			if(!itemsSnippet["defaultLanguage"].as<const char*>()){
+				checksum += allocAndCopy(&snip.defaultLanguage, "");
+			}else{
+				checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
+			}
+
+			if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
+				checksum += allocAndCopy(&snip.defaultAudioLanguage, "");
+			}else{
+				checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+			}
 			
 			if(checksum){
 				// don't set snip.set flag in order to avoid false free

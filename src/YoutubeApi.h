@@ -67,6 +67,20 @@ struct videoStatistics {
 //	In Memory of the old dislike count.	
 };
 
+
+struct snippet{
+	bool set;
+	tm publishedAt;
+	char *channelId;
+	char *title;
+	char *description;
+	char *channelTitle;
+	int categoryId;
+	char *liveBroadcastContent;
+	char *defaultLanguage;
+	char *defaultAudioLanguage;
+};
+
 class YoutubeApi
 {
 	public:
@@ -80,6 +94,9 @@ class YoutubeApi
 		bool getVideoStatistics(const String& videoId);
 		bool getContentDetails(const char *videoId);
 		bool getContentDetails(const String& videoId);
+		bool getSnippet(const char *videoId);
+		bool getSnippet(const String& videoId);
+		snippet snip;
 		channelStatistics channelStats;
 		videoStatistics videoStats;
 		contentDetails contentDets;
@@ -89,9 +106,12 @@ class YoutubeApi
 		const String apiKey;
 		Client &client;
 		tm parseDuration(const char *duration);
+		tm parseUploadDate(const char *dateTime);
+		void freeSnippet(snippet *s);
+		int allocAndCopy(char **pos, const char *data);
 		int getHttpStatusCode();
 		void skipHeaders();
-		void closeClient();
+		void closeClient();	
 };
 
 #endif

@@ -24,6 +24,13 @@
  *
  */
 
+// TODO
+// address code duplication
+//
+// add 	video.list:status
+//		video.list:topicDetails
+//
+// store retrieved data in heap instead of stack
 
 #include "YoutubeApi.h"
 
@@ -138,7 +145,7 @@ bool YoutubeApi::getChannelStatistics(const String& channelId) {
  * @brief Gets the statistics of a specific video. Stores them in the calling object.
  * 
  * @param videoId videoID of the video to get the information from
- * @return wasSuccesssful true, if there were no errors and the video was found
+ * @return true, if there were no errors and the video was found
  */
 bool YoutubeApi::getVideoStatistics(const char *videoId){
 	char command[150] = YTAPI_VIDEO_ENDPOINT;
@@ -204,10 +211,11 @@ bool YoutubeApi::getVideoStatistics(const String& videoId){
  * @brief Parses the ISO8601 duration string into a tm time struct.
  * 
  * @param duration Pointer to string
- * @return tm Time struct corresponding to duration. When sucessful, it's non zero.
+ * @return tm time struct corresponding to duration. When sucessful, it's non zero.
  */
 tm YoutubeApi::parseDuration(const char *duration){
-
+	// FIXME
+	// rewrite this with strtok?
 	tm ret;
 	memset(&ret, 0, sizeof(tm));
 
@@ -303,10 +311,40 @@ tm YoutubeApi::parseDuration(const char *duration){
 
 
 /**
+ * @brief Parses the ISO8601 date time string into a tm time struct.
+ * 
+ * @param dateTime Pointer to string
+ * @return tm time struct corresponding to specified time. When sucessful, it's non zero.
+ */
+tm YoutubeApi::parseUploadDate(const char* dateTime){
+
+	tm ret;
+	memset(&ret, 0, sizeof(tm));
+
+	if(!dateTime){
+		return ret;
+	}
+
+  	int checksum = sscanf(dateTime, "%4d-%2d-%2dT%2d:%2d:%2dZ", &ret.tm_year, &ret.tm_mon, &ret.tm_mday, 
+	  															&ret.tm_hour, &ret.tm_min, &ret.tm_sec);
+
+    if(checksum != 6){
+        printf("sscanf didn't scan in correctly\n");
+		memset(&ret, 0, sizeof(tm));
+        return ret;
+      }
+
+	ret.tm_year -= 1900;
+  
+    return ret;
+}
+
+
+/**
  * @brief Gets the content details of a specific video. Stores them in the calling object.
  * 
  * @param videoId videoID of the video to get the information from
- * @return wasSuccesssful true, if there were no errors and the video was found
+ * @return true, if there were no errors and the video was found
  */
 bool YoutubeApi::getContentDetails(const char *videoId){
 	char command[150] = YTAPI_VIDEO_ENDPOINT;
@@ -383,8 +421,175 @@ bool YoutubeApi::getContentDetails(const char *videoId){
 
 	return wasSuccessful;
 }
+
 bool YoutubeApi::getContentDetails(const String& videoId){
 	return getContentDetails(videoId.c_str());
+}
+
+/**
+ * @brief Frees memory used by strings in snippet struct. Initializes it with zeros.
+ * 
+ * @param s Pointer to snippet struct to free
+ */
+void YoutubeApi::freeSnippet(snippet *s){
+
+	if(!s->set){
+		return;
+	}
+
+	free(s->channelId);
+	free(s->title);
+	free(s->description);
+	free(s->channelTitle);
+	free(s->liveBroadcastContent);
+	free(s->defaultLanguage);
+	free(s->defaultAudioLanguage);
+
+	memset(s, 0, sizeof(snippet));
+	s->set = false;
+
+	return;
+}
+
+/**
+ * @brief Allocates memory and copies a string into it.
+ * 
+ * @param pos where to store a pointer of the allocated memory to
+ * @param data pointer of data to copy
+ * @return int 0 on success, 1 on error
+ */
+int YoutubeApi::allocAndCopy(char **pos, const char *data){
+
+	if(!data){
+		Serial.println("data is a NULL pointer!");
+		return 1;
+	}
+
+	size_t size = strlen(data) + 1;
+	char *space = (char*) malloc(size);
+
+	if(!space){
+		Serial.println("malloc returned NULL pointer!");
+		return 1;
+	}
+
+	*pos = space;
+
+	memcpy(space, data, size);
+	space[size - 1] = '\0';
+
+	return 0;
+}
+
+/**
+ * @brief Gets the snippet of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return true, if there were no errors and the video was found
+ */
+bool YoutubeApi::getSnippet(const char *videoId){
+	char command[150] = YTAPI_VIDEO_ENDPOINT;
+	char params[120];
+
+	sprintf(params, "?part=snippet&id=%s&key=%s", videoId, apiKey.c_str());
+	strcat(command, params);
+
+	if (_debug)
+	{
+		Serial.println(command);
+	}
+
+	bool wasSuccessful = false;
+
+	// should be more, just to test
+	// description can be as large as 5kb, title 400 bytes
+
+	const size_t bufferSize = 4096;
+
+	int httpStatus = sendGetToYoutube(command);
+
+	if (httpStatus == 200)
+	{	
+		// Creating a filter to filter out 
+		// metadata, thumbnail links, tags, localized information
+		DynamicJsonDocument filter(256);
+
+		JsonObject filterItems = filter["items"][0].createNestedObject("snippet");
+		filterItems["publishedAt"] = true;
+		filterItems["channelId"] = true;
+		filterItems["channelTitle"] = true;
+		filterItems["title"] = true;
+		filterItems["description"] = true;
+		filterItems["categoryId"] = true;
+		filterItems["liveBroadcastContent"] = true;
+		filterItems["defaultLanguage"] = true;
+		filterItems["defaultAudioLanguage"] = true;
+		filter["pageInfo"] = true;
+
+		// Allocate DynamicJsonDocument
+		DynamicJsonDocument doc(bufferSize);
+
+		// Parse JSON object
+		DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
+
+		// check for errors and empty response
+		if(error){
+			Serial.print(F("deserializeJson() failed with code "));
+			Serial.println(error.c_str());
+		}
+		else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+			Serial.print("No results found for video id ");
+			Serial.println(videoId);
+			Serial.println(doc["pageInfo"]["totalResults"].as<int>());
+		}
+		else{
+			JsonObject itemsSnippet = doc["items"][0]["snippet"];
+
+			if(snip.set){
+				freeSnippet(&snip);
+			}
+			int checksum = 0;
+
+			snip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
+			snip.categoryId = itemsSnippet["categoryId"].as<int>();
+
+			checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());		
+			checksum += allocAndCopy(&snip.title, itemsSnippet["title"].as<const char*>());
+			checksum += allocAndCopy(&snip.description, itemsSnippet["description"].as<const char*>());
+			checksum += allocAndCopy(&snip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
+			checksum += allocAndCopy(&snip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
+			checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
+			checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+			
+			if(checksum){
+				// don't set snip.set flag in order to avoid false free
+				Serial.print("Error reading in response values. Checksum: ");
+				Serial.println(checksum);
+				snip.set = false;
+				wasSuccessful = false;
+			}else{
+				snip.set = true;
+				wasSuccessful = true;
+			}
+		}
+		
+	} else {
+		Serial.print("Unexpected HTTP Status Code: ");
+		Serial.println(httpStatus);
+	}
+	closeClient();
+
+	return wasSuccessful;
+}
+
+/**
+ * @brief Gets the snippet of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return wasSuccesssful true, if there were no errors and the video was found
+ */
+bool YoutubeApi::getSnippet(const String& videoId){
+	return getSnippet(videoId.c_str());
 }
 
 void YoutubeApi::skipHeaders() {

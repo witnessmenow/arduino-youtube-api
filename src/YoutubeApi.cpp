@@ -25,12 +25,9 @@
  */
 
 // TODO
-// address code duplication
 //
 // add 	video.list:status
 //		video.list:topicDetails
-//
-// store retrieved data in heap instead of stack
 
 #include "YoutubeApi.h"
 
@@ -38,9 +35,11 @@ YoutubeApi::YoutubeApi(const char* key, Client &client)
 	: apiKey(key), client(client)
 {}
 
+
 YoutubeApi::YoutubeApi(const String &apiKey, Client &client) 
 	: YoutubeApi(apiKey.c_str(), client)  // passing the key as c-string to force a copy
 {}
+
 
 int YoutubeApi::sendGetToYoutube(const char *command) {
 	client.flush();
@@ -77,21 +76,59 @@ int YoutubeApi::sendGetToYoutube(const char *command) {
 	return statusCode;
 }
 
+
 int YoutubeApi::sendGetToYoutube(const String& command) {
 	return sendGetToYoutube(command.c_str());
 }
 
-bool YoutubeApi::getChannelStatistics(const char *channelId) {
-	char command[150] = YTAPI_CHANNEL_ENDPOINT;
-	char params[120];
-	sprintf(params, "?part=statistics&id=%s&key=%s", channelId, apiKey.c_str());
-	strcat(command, params);
 
-	if (_debug)
-	{
-		Serial.println(command);
+/**
+ * @brief Parses the channel statistics from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeApi::parseChannelStatistics() {
+	
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+	                        + JSON_OBJECT_SIZE(2) 
+	                        + 2*JSON_OBJECT_SIZE(4) 
+	                        + JSON_OBJECT_SIZE(5)
+	                        + 330;
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, client);
+	if (!error){
+		JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+		channelStats.viewCount = itemStatistics["viewCount"].as<long>();
+		channelStats.subscriberCount = itemStatistics["subscriberCount"].as<long>();
+		channelStats.commentCount = itemStatistics["commentCount"].as<long>();
+		channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
+		channelStats.videoCount = itemStatistics["videoCount"].as<long>();
+
+		wasSuccessful = true;
+	}
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
 	}
 
+	closeClient();
+	return wasSuccessful;
+}
+
+
+/**
+ * @brief Parses the video statistics from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeApi::parseVideoStatistics(){
+	
 	bool wasSuccessful = false;
 
 	// Get from https://arduinojson.org/v6/assistant/
@@ -101,43 +138,274 @@ bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	                        + JSON_OBJECT_SIZE(5)
 	                        + 330;
 
-	int httpStatus = sendGetToYoutube(command);
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, client);
+
+	if (error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+		JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+		videoStats.viewCount = itemStatistics["viewCount"].as<long>();
+		videoStats.likeCount = itemStatistics["likeCount"].as<long>();
+		videoStats.commentCount= itemStatistics["commentCount"].as<long>();
+
+		wasSuccessful = true;
+	}
+
+	closeClient();
+	return wasSuccessful;
+}
+
+
+/**
+ * @brief Parses the video content details from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeApi::parseContentDetails(){
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 768;
+
+	
+	// Creating a filter to filter out 
+	// region restrictions, content rating and metadata
+	StaticJsonDocument<144> filter;
+
+	JsonObject filterItems = filter["items"][0].createNestedObject("contentDetails");
+	filterItems["duration"] = true;
+	filterItems["dimension"] = true;
+	filterItems["definition"] = true;
+	filterItems["caption"] = true;
+	filterItems["licensedContent"] = true;
+	filter["pageInfo"] = true;
+
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
+
+	// check for errors and empty response
+	if(error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+		wasSuccessful = true;
+
+		JsonObject itemcontentDetails = doc["items"][0]["contentDetails"];
+
+		memcpy(contentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
+		memcpy(contentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
+			
+		if("false" == itemcontentDetails["caption"]){
+			contentDets.caption = true;
+		}
+		else{
+			contentDets.caption = false;
+		}
+			
+		contentDets.licensedContent = itemcontentDetails["licensedContent"].as<bool>();
+		contentDets.duration = parseDuration(itemcontentDetails["duration"].as<const char*>());
+	}
+		
+	closeClient();
+	return wasSuccessful;
+}
+
+
+/**
+ * @brief Parses the video snippet from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeApi::parseSnippet(){
+
+	bool wasSuccessful = false;
+
+	// should be more, just to test
+	// description can be as large as 5kb, title 400 bytes
+	const size_t bufferSize = 4096;
+
+	// Creating a filter to filter out 
+	// metadata, thumbnail links, tags, localized information
+	StaticJsonDocument<256> filter;
+
+	JsonObject filterItems = filter["items"][0].createNestedObject("snippet");
+	filterItems["publishedAt"] = true;
+	filterItems["channelId"] = true;
+	filterItems["channelTitle"] = true;
+	filterItems["title"] = true;
+	filterItems["description"] = true;
+	filterItems["categoryId"] = true;
+	filterItems["liveBroadcastContent"] = true;
+	filterItems["defaultLanguage"] = true;
+	filterItems["defaultAudioLanguage"] = true;
+	filter["pageInfo"] = true;
+
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
+
+	// check for errors and empty response
+	if(error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+		JsonObject itemsSnippet = doc["items"][0]["snippet"];
+
+		if(snip.set){
+			freeSnippet(&snip);
+		}
+		int checksum = 0;
+
+		snip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
+		snip.categoryId = itemsSnippet["categoryId"].as<int>();
+
+		checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());
+		checksum += allocAndCopy(&snip.title, itemsSnippet["title"].as<const char*>());
+		checksum += allocAndCopy(&snip.description, itemsSnippet["description"].as<const char*>());
+		checksum += allocAndCopy(&snip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
+		checksum += allocAndCopy(&snip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
+
+		// language informations appears to be optional, so it is being checked if it is in response
+		// if not, a placeholder will be set
+		if(!itemsSnippet["defaultLanguage"].as<const char*>()){
+			checksum += allocAndCopy(&snip.defaultLanguage, "");
+		}else{
+			checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
+		}
+
+		if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
+			checksum += allocAndCopy(&snip.defaultAudioLanguage, "");
+		}else{
+			checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+		}
+			
+		if(checksum){
+			// don't set snip.set flag in order to avoid false free
+			Serial.print("Error reading in response values. Checksum: ");
+			Serial.println(checksum);
+			snip.set = false;
+			wasSuccessful = false;
+		}else{
+			snip.set = true;
+			wasSuccessful = true;
+		}
+	}
+
+	closeClient();
+	return wasSuccessful;
+}
+
+
+/**
+ * @brief Makes an API request for a specific endpoint and type. Calls a parsing function
+ * to handle parsing.
+ * 
+ * @param op API request type to make
+ * @param id video or channel id
+ * @return Returns parsing function return value, or false in case of an unexpected HTTP status code.
+ */
+bool YoutubeApi::getRequestedType(int op, const char *id) {
+
+	char command[150];
+	bool wasSuccessful = false;
+	int httpStatus;
+
+	switch (op)
+	{
+	case videoListStats:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey.c_str());	
+		break;
+	
+	case videoListContentDetails:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey.c_str());
+		break;
+	
+	case videoListSnippet:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey.c_str());
+		break;
+
+	case channelListStats:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey.c_str());
+		break;
+	
+	default:
+		return false;
+	}
+
+	if (_debug){
+		Serial.println(command);
+	}
+
+	httpStatus = sendGetToYoutube(command);
 
 	if (httpStatus == 200)
 	{
-		// Allocate DynamicJsonDocument
-		DynamicJsonDocument doc(bufferSize);
-
-		// Parse JSON object
-		DeserializationError error = deserializeJson(doc, client);
-		if (!error)
+		switch(op)
 		{
-			wasSuccessful = true;
+			case channelListStats:
+				wasSuccessful = parseChannelStatistics();
+				break;
+			
+			case videoListStats:
+				wasSuccessful = parseVideoStatistics();
+				break;
 
-			JsonObject itemStatistics = doc["items"][0]["statistics"];
+			case videoListContentDetails:
+				wasSuccessful = parseContentDetails();
+				break;
+			
+			case videoListSnippet:
+				wasSuccessful = parseSnippet();
+				break;
 
-			channelStats.viewCount = itemStatistics["viewCount"].as<long>();
-			channelStats.subscriberCount = itemStatistics["subscriberCount"].as<long>();
-			channelStats.commentCount = itemStatistics["commentCount"].as<long>();
-			channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
-			channelStats.videoCount = itemStatistics["videoCount"].as<long>();
-		}
-		else
-		{
-			Serial.print(F("deserializeJson() failed with code "));
-			Serial.println(error.c_str());
+			default:
+				wasSuccessful = false;
+				break;
 		}
 	} else {
 		Serial.print("Unexpected HTTP Status Code: ");
 		Serial.println(httpStatus);
 	}
-	closeClient();
-
 	return wasSuccessful;
 }
 
+
+/**
+ * @brief Gets the statistics of a specific channel. Stores them in the calling object.
+ * 
+ * @param channelId channelID of the channel to get the information from
+ * @return true, if there were no errors and the channel was found
+ */
 bool YoutubeApi::getChannelStatistics(const String& channelId) {
-	return getChannelStatistics(channelId.c_str());
+	return getRequestedType(channelListStats, channelId.c_str());
+}
+
+
+bool YoutubeApi::getChannelStatistics(const char *channelId) {
+	return getRequestedType(channelListStats, channelId);
 }
 
 
@@ -147,65 +415,47 @@ bool YoutubeApi::getChannelStatistics(const String& channelId) {
  * @param videoId videoID of the video to get the information from
  * @return true, if there were no errors and the video was found
  */
-bool YoutubeApi::getVideoStatistics(const char *videoId){
-	char command[150] = YTAPI_VIDEO_ENDPOINT;
-	char params[120];
-	sprintf(params, "?part=statistics&id=%s&key=%s", videoId, apiKey.c_str());
-	strcat(command, params);
-
-	if (_debug)
-	{
-		Serial.println(command);
-	}
-
-	bool wasSuccessful = false;
-
-	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
-	                        + JSON_OBJECT_SIZE(2) 
-	                        + 2*JSON_OBJECT_SIZE(4) 
-	                        + JSON_OBJECT_SIZE(5)
-	                        + 330;
-
-	int httpStatus = sendGetToYoutube(command);
-
-	if (httpStatus == 200)
-	{
-		// Allocate DynamicJsonDocument
-		DynamicJsonDocument doc(bufferSize);
-
-		// Parse JSON object
-		DeserializationError error = deserializeJson(doc, client);
-
-		if (error){
-			Serial.print(F("deserializeJson() failed with code "));
-			Serial.println(error.c_str());
-		}
-		else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-			Serial.print("No results found for video id ");
-			Serial.println(videoId);
-		}
-		else{
-			wasSuccessful = true;
-
-			JsonObject itemStatistics = doc["items"][0]["statistics"];
-
-			videoStats.viewCount = itemStatistics["viewCount"].as<long>();
-			videoStats.likeCount = itemStatistics["likeCount"].as<long>();
-			videoStats.commentCount= itemStatistics["commentCount"].as<long>();
-		}
-	} else {
-		Serial.print("Unexpected HTTP Status Code: ");
-		Serial.println(httpStatus);
-	}
-	closeClient();
-
-	return wasSuccessful;
-}
-
 bool YoutubeApi::getVideoStatistics(const String& videoId){
-	return getVideoStatistics(videoId.c_str());
+	return getRequestedType(videoListStats, videoId.c_str());
 }
+
+
+bool YoutubeApi::getVideoStatistics(const char *videoId){
+	return getRequestedType(videoListStats, videoId);
+}
+
+
+/**
+ * @brief Gets the content details of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return true, if there were no errors and the video was found
+ */
+bool YoutubeApi::getContentDetails(const String& videoId){
+	return getRequestedType(videoListContentDetails, videoId.c_str());
+}
+
+
+bool YoutubeApi::getContentDetails(const char *videoId){
+	return getRequestedType(videoListContentDetails, videoId);
+}
+
+
+/**
+ * @brief Gets the snippet of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return wasSuccesssful true, if there were no errors and the video was found
+ */
+bool YoutubeApi::getSnippet(const String& videoId){
+	return getRequestedType(videoListSnippet, videoId.c_str());
+}
+
+
+bool YoutubeApi::getSnippet(const char *videoId){
+	return getRequestedType(videoListSnippet, videoId);
+}
+
 
 /**
  * @brief Parses the ISO8601 duration string into a tm time struct.
@@ -341,92 +591,6 @@ tm YoutubeApi::parseUploadDate(const char* dateTime){
 
 
 /**
- * @brief Gets the content details of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return true, if there were no errors and the video was found
- */
-bool YoutubeApi::getContentDetails(const char *videoId){
-	char command[150] = YTAPI_VIDEO_ENDPOINT;
-	char params[120];
-	sprintf(params, "?part=contentDetails&id=%s&key=%s", videoId, apiKey.c_str());
-	strcat(command, params);
-
-	if (_debug)
-	{
-		Serial.println(command);
-	}
-
-	bool wasSuccessful = false;
-
-	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = 768;
-
-	int httpStatus = sendGetToYoutube(command);
-
-	if (httpStatus == 200)
-	{	
-		// Creating a filter to filter out 
-		// region restrictions, content rating and metadata
-		DynamicJsonDocument filter(144);
-
-		JsonObject filterItems = filter["items"][0].createNestedObject("contentDetails");
-		filterItems["duration"] = true;
-		filterItems["dimension"] = true;
-		filterItems["definition"] = true;
-		filterItems["caption"] = true;
-		filterItems["licensedContent"] = true;
-		filter["pageInfo"] = true;
-
-		// Allocate DynamicJsonDocument
-		DynamicJsonDocument doc(bufferSize);
-
-		// Parse JSON object
-		DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
-
-		// check for errors and empty response
-		if(error){
-			Serial.print(F("deserializeJson() failed with code "));
-			Serial.println(error.c_str());
-		}
-		else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-			Serial.print("No results found for video id ");
-			Serial.println(videoId);
-		}
-		else{
-			wasSuccessful = true;
-
-			JsonObject itemcontentDetails = doc["items"][0]["contentDetails"];
-
-			memcpy(contentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
-			
-			memcpy(contentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
-			
-			if(strcmp("false", itemcontentDetails["caption"].as<const char*>()) != 0){
-				contentDets.caption = true;
-			}
-			else{
-				contentDets.caption = false;
-			}
-			
-			contentDets.licensedContent = itemcontentDetails["licensedContent"].as<bool>();
-			contentDets.duration = parseDuration(itemcontentDetails["duration"].as<const char*>());
-		}
-		
-	} else {
-		Serial.print("Unexpected HTTP Status Code: ");
-		Serial.println(httpStatus);
-	}
-	closeClient();
-
-	return wasSuccessful;
-}
-
-bool YoutubeApi::getContentDetails(const String& videoId){
-	return getContentDetails(videoId.c_str());
-}
-
-/**
  * @brief Frees memory used by strings in snippet struct. Initializes it with zeros.
  * 
  * @param s Pointer to snippet struct to free
@@ -481,128 +645,6 @@ int YoutubeApi::allocAndCopy(char **pos, const char *data){
 	return 0;
 }
 
-/**
- * @brief Gets the snippet of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return true, if there were no errors and the video was found
- */
-bool YoutubeApi::getSnippet(const char *videoId){
-	char command[150] = YTAPI_VIDEO_ENDPOINT;
-	char params[120];
-
-	sprintf(params, "?part=snippet&id=%s&key=%s", videoId, apiKey.c_str());
-	strcat(command, params);
-
-	if (_debug)
-	{
-		Serial.println(command);
-	}
-
-	bool wasSuccessful = false;
-
-	// should be more, just to test
-	// description can be as large as 5kb, title 400 bytes
-
-	const size_t bufferSize = 4096;
-
-	int httpStatus = sendGetToYoutube(command);
-
-	if (httpStatus == 200)
-	{	
-		// Creating a filter to filter out 
-		// metadata, thumbnail links, tags, localized information
-		DynamicJsonDocument filter(256);
-
-		JsonObject filterItems = filter["items"][0].createNestedObject("snippet");
-		filterItems["publishedAt"] = true;
-		filterItems["channelId"] = true;
-		filterItems["channelTitle"] = true;
-		filterItems["title"] = true;
-		filterItems["description"] = true;
-		filterItems["categoryId"] = true;
-		filterItems["liveBroadcastContent"] = true;
-		filterItems["defaultLanguage"] = true;
-		filterItems["defaultAudioLanguage"] = true;
-		filter["pageInfo"] = true;
-
-		// Allocate DynamicJsonDocument
-		DynamicJsonDocument doc(bufferSize);
-
-		// Parse JSON object
-		DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
-
-		// check for errors and empty response
-		if(error){
-			Serial.print(F("deserializeJson() failed with code "));
-			Serial.println(error.c_str());
-		}
-		else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-			Serial.print("No results found for video id ");
-			Serial.println(videoId);
-			Serial.println(doc["pageInfo"]["totalResults"].as<int>());
-		}
-		else{
-			JsonObject itemsSnippet = doc["items"][0]["snippet"];
-
-			if(snip.set){
-				freeSnippet(&snip);
-			}
-			int checksum = 0;
-
-			snip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
-			snip.categoryId = itemsSnippet["categoryId"].as<int>();
-
-			checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());
-			checksum += allocAndCopy(&snip.title, itemsSnippet["title"].as<const char*>());
-			checksum += allocAndCopy(&snip.description, itemsSnippet["description"].as<const char*>());
-			checksum += allocAndCopy(&snip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
-			checksum += allocAndCopy(&snip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
-
-			// language informations appears to be optional, so it is being checked if it is in response
-			// if not, a placeholder will be set
-			if(!itemsSnippet["defaultLanguage"].as<const char*>()){
-				checksum += allocAndCopy(&snip.defaultLanguage, "");
-			}else{
-				checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
-			}
-
-			if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
-				checksum += allocAndCopy(&snip.defaultAudioLanguage, "");
-			}else{
-				checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
-			}
-			
-			if(checksum){
-				// don't set snip.set flag in order to avoid false free
-				Serial.print("Error reading in response values. Checksum: ");
-				Serial.println(checksum);
-				snip.set = false;
-				wasSuccessful = false;
-			}else{
-				snip.set = true;
-				wasSuccessful = true;
-			}
-		}
-		
-	} else {
-		Serial.print("Unexpected HTTP Status Code: ");
-		Serial.println(httpStatus);
-	}
-	closeClient();
-
-	return wasSuccessful;
-}
-
-/**
- * @brief Gets the snippet of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return wasSuccesssful true, if there were no errors and the video was found
- */
-bool YoutubeApi::getSnippet(const String& videoId){
-	return getSnippet(videoId.c_str());
-}
 
 void YoutubeApi::skipHeaders() {
 	// Skip HTTP headers
@@ -627,6 +669,7 @@ void YoutubeApi::skipHeaders() {
 	}
 }
 
+
 int YoutubeApi::getHttpStatusCode() {
 	// Check HTTP status
 	if(client.find("HTTP/1.1")){
@@ -636,6 +679,7 @@ int YoutubeApi::getHttpStatusCode() {
 
 	return -1;
 }
+
 
 void YoutubeApi::closeClient() {
 	if(client.connected()) {

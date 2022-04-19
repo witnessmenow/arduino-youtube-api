@@ -38,8 +38,17 @@
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
+#define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
 
-#define YT_VIDEO_TITLE_MAX_LENGTH 100
+enum operation{
+
+	videoListStats,
+	videoListContentDetails,
+	videoListSnippet,
+
+	channelListStats
+};
+
 
 struct channelStatistics {
 	long viewCount;
@@ -86,16 +95,22 @@ class YoutubeApi
 	public:
 		YoutubeApi(const char *key, Client &client);
 		YoutubeApi(const String& apiKey, Client& client);
+
 		int sendGetToYoutube(const char *command);
 		int sendGetToYoutube(const String& command);
-		bool getChannelStatistics(const char *channelId);
+
 		bool getChannelStatistics(const String& channelId);
-		bool getVideoStatistics(const char *videoId);
+		bool getChannelStatistics(const char *channelId);
+
 		bool getVideoStatistics(const String& videoId);
-		bool getContentDetails(const char *videoId);
+		bool getVideoStatistics(const char *videoId);
+
 		bool getContentDetails(const String& videoId);
-		bool getSnippet(const char *videoId);
+		bool getContentDetails(const char *videoId);
+		
 		bool getSnippet(const String& videoId);
+		bool getSnippet(const char *videoId);
+		
 		snippet snip;
 		channelStatistics channelStats;
 		videoStatistics videoStats;
@@ -107,9 +122,17 @@ class YoutubeApi
 		Client &client;
 		tm parseDuration(const char *duration);
 		tm parseUploadDate(const char *dateTime);
+
 		void freeSnippet(snippet *s);
 		int allocAndCopy(char **pos, const char *data);
+		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
+
+		bool parseChannelStatistics();
+		bool parseVideoStatistics();
+		bool parseContentDetails();
+		bool parseSnippet();
+
 		void skipHeaders();
 		void closeClient();	
 };

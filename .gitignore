@@ -367,3 +367,7 @@ vs-readme.txt
 .gcc-flags.json
 .pio/
 .vscode/
+
+# custom ignores
+src/*.ino
+src/*.txt

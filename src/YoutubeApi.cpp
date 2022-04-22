@@ -27,6 +27,7 @@
 // TODO
 //
 // add 	video.list:topicDetails
+// add	custom error types
 
 #include "YoutubeApi.h"
 
@@ -170,7 +171,7 @@ bool YoutubeApi::parseVideoStatistics(){
  * 
  * @return true on success, false on error 
  */
-bool YoutubeApi::parseContentDetails(){
+bool YoutubeApi::parseVideoContentDetails(){
 	bool wasSuccessful = false;
 
 	// Get from https://arduinojson.org/v6/assistant/
@@ -209,19 +210,19 @@ bool YoutubeApi::parseContentDetails(){
 
 		JsonObject itemcontentDetails = doc["items"][0]["contentDetails"];
 
-		memcpy(contentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
-		memcpy(contentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
-		strcpy(contentDets.projection, itemcontentDetails["projection"].as<const char*>());
+		memcpy(videoContentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
+		memcpy(videoContentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
+		strcpy(videoContentDets.projection, itemcontentDetails["projection"].as<const char*>());
 
 		if("false" == itemcontentDetails["caption"]){
-			contentDets.caption = true;
+			videoContentDets.caption = true;
 		}
 		else{
-			contentDets.caption = false;
+			videoContentDets.caption = false;
 		}
 			
-		contentDets.licensedContent = itemcontentDetails["licensedContent"].as<bool>();
-		contentDets.duration = parseDuration(itemcontentDetails["duration"].as<const char*>());
+		videoContentDets.licensedContent = itemcontentDetails["licensedContent"].as<bool>();
+		videoContentDets.duration = parseDuration(itemcontentDetails["duration"].as<const char*>());
 	}
 		
 	closeClient();
@@ -234,7 +235,7 @@ bool YoutubeApi::parseContentDetails(){
  * 
  * @return true on success, false on error 
  */
-bool YoutubeApi::parseSnippet(){
+bool YoutubeApi::parseVideoSnippet(){
 
 	bool wasSuccessful = false;
 
@@ -275,42 +276,42 @@ bool YoutubeApi::parseSnippet(){
 	else{
 		JsonObject itemsSnippet = doc["items"][0]["snippet"];
 
-		if(snip.set){
-			freeSnippet(&snip);
+		if(videoSnip.set){
+			freeVideoSnippet(&videoSnip);
 		}
 		int checksum = 0;
 
-		snip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
-		snip.categoryId = itemsSnippet["categoryId"].as<int>();
+		videoSnip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
+		videoSnip.categoryId = itemsSnippet["categoryId"].as<int>();
 
-		checksum += allocAndCopy(&snip.channelId, itemsSnippet["channelId"].as<const char*>());
-		checksum += allocAndCopy(&snip.title, itemsSnippet["title"].as<const char*>());
-		checksum += allocAndCopy(&snip.description, itemsSnippet["description"].as<const char*>());
-		checksum += allocAndCopy(&snip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
-		checksum += allocAndCopy(&snip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
+		checksum += allocAndCopy(&videoSnip.channelId, itemsSnippet["channelId"].as<const char*>());
+		checksum += allocAndCopy(&videoSnip.title, itemsSnippet["title"].as<const char*>());
+		checksum += allocAndCopy(&videoSnip.description, itemsSnippet["description"].as<const char*>());
+		checksum += allocAndCopy(&videoSnip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
+		checksum += allocAndCopy(&videoSnip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
 
 		// language informations appears to be optional, so it is being checked if it is in response
 		// if not, a placeholder will be set
 		if(!itemsSnippet["defaultLanguage"].as<const char*>()){
-			checksum += allocAndCopy(&snip.defaultLanguage, "");
+			checksum += allocAndCopy(&videoSnip.defaultLanguage, "");
 		}else{
-			checksum += allocAndCopy(&snip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
+			checksum += allocAndCopy(&videoSnip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
 		}
 
 		if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
-			checksum += allocAndCopy(&snip.defaultAudioLanguage, "");
+			checksum += allocAndCopy(&videoSnip.defaultAudioLanguage, "");
 		}else{
-			checksum += allocAndCopy(&snip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+			checksum += allocAndCopy(&videoSnip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
 		}
 			
 		if(checksum){
 			// don't set snip.set flag in order to avoid false free
 			Serial.print("Error reading in response values. Checksum: ");
 			Serial.println(checksum);
-			snip.set = false;
+			videoSnip.set = false;
 			wasSuccessful = false;
 		}else{
-			snip.set = true;
+			videoSnip.set = true;
 			wasSuccessful = true;
 		}
 	}
@@ -319,7 +320,11 @@ bool YoutubeApi::parseSnippet(){
 	return wasSuccessful;
 }
 
-
+/**
+ * @brief Parses the video status from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
 bool YoutubeApi::parseVideoStatus(){
 
 	bool wasSuccessful = false;
@@ -360,7 +365,7 @@ bool YoutubeApi::parseVideoStatus(){
 		JsonObject itemsStatus = doc["items"][0]["status"];
 
 		if(vStatus.set){
-			freeStatus(&vStatus);
+			freeVideoStatus(&vStatus);
 		}
 
 		int checksum = 0;
@@ -449,11 +454,11 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 				break;
 
 			case videoListContentDetails:
-				wasSuccessful = parseContentDetails();
+				wasSuccessful = parseVideoContentDetails();
 				break;
 			
 			case videoListSnippet:
-				wasSuccessful = parseSnippet();
+				wasSuccessful = parseVideoSnippet();
 				break;
 
 			case videoListStatus:
@@ -510,12 +515,12 @@ bool YoutubeApi::getVideoStatistics(const char *videoId){
  * @param videoId videoID of the video to get the information from
  * @return true, if there were no errors and the video was found
  */
-bool YoutubeApi::getContentDetails(const String& videoId){
+bool YoutubeApi::getVideoContentDetails(const String& videoId){
 	return getRequestedType(videoListContentDetails, videoId.c_str());
 }
 
 
-bool YoutubeApi::getContentDetails(const char *videoId){
+bool YoutubeApi::getVideoContentDetails(const char *videoId){
 	return getRequestedType(videoListContentDetails, videoId);
 }
 
@@ -526,12 +531,12 @@ bool YoutubeApi::getContentDetails(const char *videoId){
  * @param videoId videoID of the video to get the information from
  * @return wasSuccesssful true, if there were no errors and the video was found
  */
-bool YoutubeApi::getSnippet(const String& videoId){
+bool YoutubeApi::getVideoSnippet(const String& videoId){
 	return getRequestedType(videoListSnippet, videoId.c_str());
 }
 
 
-bool YoutubeApi::getSnippet(const char *videoId){
+bool YoutubeApi::getVideoSnippet(const char *videoId){
 	return getRequestedType(videoListSnippet, videoId);
 }
 
@@ -687,11 +692,11 @@ tm YoutubeApi::parseUploadDate(const char* dateTime){
 
 
 /**
- * @brief Frees memory used by strings in snippet struct. Initializes it with zeros.
+ * @brief Frees memory used by strings in videoSnippet struct. Initializes it with zeros.
  * 
- * @param s Pointer to snippet struct to free
+ * @param s Pointer to videoSnippet struct to free
  */
-void YoutubeApi::freeSnippet(snippet *s){
+void YoutubeApi::freeVideoSnippet(videoSnippet *s){
 
 	if(!s->set){
 		return;
@@ -705,14 +710,18 @@ void YoutubeApi::freeSnippet(snippet *s){
 	free(s->defaultLanguage);
 	free(s->defaultAudioLanguage);
 
-	memset(s, 0, sizeof(snippet));
+	memset(s, 0, sizeof(videoSnippet));
 	s->set = false;
 
 	return;
 }
 
-
-void YoutubeApi::freeStatus(videoStatus *s){
+/**
+ * @brief Frees memory used by strings in videoStatus struct. Initialzes it witn zeroes.
+ * 
+ * @param s Pointer to videoStatus struct to free
+ */
+void YoutubeApi::freeVideoStatus(videoStatus *s){
 
 	if(!s->set){
 		return;

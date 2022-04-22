@@ -51,7 +51,11 @@ If you don't know it, you can find your own YouTube channel ID [here](https://ww
 
 ## Supported Data Methods
 
-Currently the only implemented method is getting channel statistics, but the library can be easily extended. Please raise an issue if there is a method you are looking for.
+The library is currently able to fetch:
+
+- video list:   snippet, status, statistics and contentDetails
+- channel list: statistics
+
 
 ## License
 

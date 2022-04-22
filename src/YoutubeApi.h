@@ -51,6 +51,8 @@ enum operation{
 };
 
 
+// not implemented data fields are commented
+
 struct channelStatistics {
 	long viewCount;
 	long commentCount;  /* DEPRECATED */
@@ -60,7 +62,7 @@ struct channelStatistics {
 };
 
 
-struct contentDetails{
+struct videoContentDetails{
 	tm duration;
 	char dimension[3];
 	char defintion[3];
@@ -98,7 +100,7 @@ struct videoStatus{
 //	bool selfDeclaredMadeForKids;
 };
 
-struct snippet{
+struct videoSnippet{
 	bool set;
 	tm publishedAt;
 	char *channelId;
@@ -129,19 +131,20 @@ class YoutubeApi
 		bool getVideoStatistics(const String& videoId);
 		bool getVideoStatistics(const char *videoId);
 
-		bool getContentDetails(const String& videoId);
-		bool getContentDetails(const char *videoId);
+		bool getVideoContentDetails(const String& videoId);
+		bool getVideoContentDetails(const char *videoId);
 		
-		bool getSnippet(const String& videoId);
-		bool getSnippet(const char *videoId);
+		bool getVideoSnippet(const String& videoId);
+		bool getVideoSnippet(const char *videoId);
 
 		bool getVideoStatus(const String& videoId);
 		bool getVideoStatus(const char *videoId);
 
-		snippet snip;
 		channelStatistics channelStats;
+
+		videoSnippet videoSnip;
 		videoStatistics videoStats;
-		contentDetails contentDets;
+		videoContentDetails videoContentDets;
 		videoStatus vStatus;
 		bool _debug = false;
 
@@ -151,16 +154,16 @@ class YoutubeApi
 		tm parseDuration(const char *duration);
 		tm parseUploadDate(const char *dateTime);
 
-		void freeSnippet(snippet *s);
-		void freeStatus(videoStatus *s);
+		void freeVideoSnippet(videoSnippet *s);
+		void freeVideoStatus(videoStatus *s);
 		int allocAndCopy(char **pos, const char *data);
 		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
 
 		bool parseChannelStatistics();
 		bool parseVideoStatistics();
-		bool parseContentDetails();
-		bool parseSnippet();
+		bool parseVideoContentDetails();
+		bool parseVideoSnippet();
 		bool parseVideoStatus();
 
 		void skipHeaders();

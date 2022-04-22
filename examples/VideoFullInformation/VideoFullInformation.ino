@@ -154,47 +154,47 @@ void loop() {
 	Serial.setTimeout(timeBetweenRequestGroup);
 
 	// fetch and print information in videos.list:snippet
-	if(api.getSnippet(videoId)){
+	if(api.getVideoSnippet(videoId)){
 		Serial.println("\n\nsnippet");
 
-		Serial.print("------ Video title: ");
-		Serial.println(api.snip.title);
+		Serial.print("|----- Video title: ");
+		Serial.println(api.videoSnip.title);
 		
-		Serial.println("------ Video description: \n");
-		Serial.println(api.snip.description);
+		Serial.println("|----- Video description: \n");
+		Serial.println(api.videoSnip.description);
         Serial.println("");
 
-		Serial.print("------ Uploaded by (channel title): ");
-		Serial.println(api.snip.channelTitle);
+		Serial.print("|----- Uploaded by (channel title): ");
+		Serial.println(api.videoSnip.channelTitle);
 
-        Serial.print("------ Uploaded by (channel id): ");
-		Serial.println(api.snip.channelId);
+        Serial.print("|----- Uploaded by (channel id): ");
+		Serial.println(api.videoSnip.channelId);
 
-        Serial.print("------ Published at (d.m.y h:m:s): ");
-		Serial.print(api.snip.publishedAt.tm_mday);
+        Serial.print("|----- Published at (d.m.y h:m:s): ");
+		Serial.print(api.videoSnip.publishedAt.tm_mday);
         Serial.print(".");
-        Serial.print(api.snip.publishedAt.tm_mon);
+        Serial.print(api.videoSnip.publishedAt.tm_mon);
         Serial.print(".");
-        Serial.print(api.snip.publishedAt.tm_year + 1900);
+        Serial.print(api.videoSnip.publishedAt.tm_year + 1900);
         Serial.print(" ");
-        Serial.print(api.snip.publishedAt.tm_hour);
+        Serial.print(api.videoSnip.publishedAt.tm_hour);
         Serial.print(":");
-        Serial.print(api.snip.publishedAt.tm_min);
+        Serial.print(api.videoSnip.publishedAt.tm_min);
         Serial.print(":");
-        Serial.println(api.snip.publishedAt.tm_sec);
+        Serial.println(api.videoSnip.publishedAt.tm_sec);
 
-        Serial.print("------ Livebroadcast content: ");
-        Serial.println(api.snip.liveBroadcastContent);
+        Serial.print("|----- Livebroadcast content: ");
+        Serial.println(api.videoSnip.liveBroadcastContent);
 
-        Serial.print("------ Category id: ");
-        Serial.println(api.snip.categoryId);
+        Serial.print("|----- Category id: ");
+        Serial.println(api.videoSnip.categoryId);
 
-        Serial.print("------ Default language: ");
-        Serial.println(api.snip.defaultLanguage);
+        Serial.print("|----- Default language: ");
+        Serial.println(api.videoSnip.defaultLanguage);
 
 
-        Serial.print("------ Default audio language: ");
-        Serial.println(api.snip.defaultAudioLanguage);
+        Serial.print("|----- Default audio language: ");
+        Serial.println(api.videoSnip.defaultAudioLanguage);
         
 		Serial.println("-------------------------------------------------");
 	}
@@ -205,13 +205,13 @@ void loop() {
 	if(api.getVideoStatistics(videoId)){
 		Serial.println("\n\nstatistics");
 
-		Serial.print("------ Video views: ");
+		Serial.print("|----- Video views: ");
 		Serial.println(api.videoStats.viewCount);
 		
-		Serial.print("------ Likes: ");
+		Serial.print("|----- Likes: ");
 		Serial.println(api.videoStats.likeCount);
 
-		Serial.print("------ Comments: ");
+		Serial.print("|----- Comments: ");
 		Serial.println(api.videoStats.commentCount);
 
 		Serial.println("-------------------------------------------------");
@@ -220,40 +220,40 @@ void loop() {
     delay(timeBetweenRequests);
 
 	// fetch and print information in videos.list:contentDetails
-    if(api.getContentDetails(videoId)){
+    if(api.getVideoContentDetails(videoId)){
 		Serial.println("\n\ncontentDetails");
 
-		Serial.print("------ Video duration ");
+		Serial.print("|----- Video duration ");
 
-        if(api.contentDets.duration.tm_mday != 0){
+        if(api.videoContentDets.duration.tm_mday != 0){
             Serial.print("(d:h:m:s): ");
-            Serial.print(api.contentDets.duration.tm_mday);
+            Serial.print(api.videoContentDets.duration.tm_mday);
             Serial.print(":");
         }else{
             Serial.print("(h:m:s): ");
         }
 
         
-        Serial.print(api.contentDets.duration.tm_hour);
+        Serial.print(api.videoContentDets.duration.tm_hour);
         Serial.print(":");
-        Serial.print(api.contentDets.duration.tm_min);
+        Serial.print(api.videoContentDets.duration.tm_min);
         Serial.print(":");
-        Serial.println(api.contentDets.duration.tm_sec);
+        Serial.println(api.videoContentDets.duration.tm_sec);
 
-		Serial.print("------ Dimension: ");
-		Serial.println(api.contentDets.dimension);
+		Serial.print("|----- Dimension: ");
+		Serial.println(api.videoContentDets.dimension);
 
-		Serial.print("------ Definition: ");
-		Serial.println(api.contentDets.defintion);
+		Serial.print("|----- Definition: ");
+		Serial.println(api.videoContentDets.defintion);
 
-		Serial.print("------ Captioned: ");
-		printYesNo(api.contentDets.caption);
+		Serial.print("|----- Captioned: ");
+		printYesNo(api.videoContentDets.caption);
 
-		Serial.print("------ Licensed Content: ");
-		printYesNo(api.contentDets.licensedContent);
+		Serial.print("|----- Licensed Content: ");
+		printYesNo(api.videoContentDets.licensedContent);
 
-		Serial.print("------ Projection: ");
-		Serial.println(api.contentDets.projection);
+		Serial.print("|----- Projection: ");
+		Serial.println(api.videoContentDets.projection);
 
 		Serial.println("-------------------------------------------------");
 	}
@@ -263,22 +263,22 @@ void loop() {
 	if(api.getVideoStatus(videoId)){
 		Serial.println("\n\n status");
 
-		Serial.print("------ upload status: ");
+		Serial.print("|----- upload status: ");
 		Serial.println(api.vStatus.uploadStatus);
 
-		Serial.print("------ privacy status: ");
+		Serial.print("|----- privacy status: ");
 		Serial.println(api.vStatus.privacyStatus);
 
-		Serial.print("------ license: ");
+		Serial.print("|----- license: ");
 		Serial.println(api.vStatus.license);
 
-		Serial.print("------ embeddable: ");
+		Serial.print("|----- embeddable: ");
 		printYesNo(api.vStatus.embeddable);
 
-		Serial.print("------ public stats viewable: ");
+		Serial.print("|----- public stats viewable: ");
 		printYesNo(api.vStatus.publicStatsViewable);
 
-		Serial.print("------ made for kids: ");
+		Serial.print("|----- made for kids: ");
 		printYesNo(api.vStatus.madeForKids);
 	}
 

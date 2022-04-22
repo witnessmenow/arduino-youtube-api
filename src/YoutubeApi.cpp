@@ -175,12 +175,12 @@ bool YoutubeApi::parseContentDetails(){
 	bool wasSuccessful = false;
 
 	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = 768;
+	const size_t bufferSize = 384;
 
 	
 	// Creating a filter to filter out 
 	// region restrictions, content rating and metadata
-	StaticJsonDocument<144> filter;
+	StaticJsonDocument<180> filter;
 
 	JsonObject filterItems = filter["items"][0].createNestedObject("contentDetails");
 	filterItems["duration"] = true;
@@ -188,6 +188,7 @@ bool YoutubeApi::parseContentDetails(){
 	filterItems["definition"] = true;
 	filterItems["caption"] = true;
 	filterItems["licensedContent"] = true;
+	filterItems["projection"] = true;
 	filter["pageInfo"] = true;
 
 	// Allocate DynamicJsonDocument
@@ -211,7 +212,8 @@ bool YoutubeApi::parseContentDetails(){
 
 		memcpy(contentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
 		memcpy(contentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
-			
+		strcpy(contentDets.projection, itemcontentDetails["projection"].as<const char*>());
+
 		if("false" == itemcontentDetails["caption"]){
 			contentDets.caption = true;
 		}
@@ -239,7 +241,7 @@ bool YoutubeApi::parseSnippet(){
 
 	// should be more, just to test
 	// description can be as large as 5kb, title 400 bytes
-	const size_t bufferSize = 4096;
+	const size_t bufferSize = 6000;
 
 	// Creating a filter to filter out 
 	// metadata, thumbnail links, tags, localized information

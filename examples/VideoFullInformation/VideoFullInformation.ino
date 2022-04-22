@@ -92,6 +92,19 @@ void flushSerialBuffer(){
 	}
 }
 
+/**
+ * @brief Prints "Yes\n" if x or "No\n" if not x 
+ * 
+ * @param x parameter
+ */
+void printYesNo(bool x){
+	if(x){
+		Serial.println("Yes");
+	}else{
+		Serial.println("No");
+	}
+}
+
 
 void setup() {
 	Serial.begin(115200);
@@ -227,12 +240,20 @@ void loop() {
         Serial.print(":");
         Serial.println(api.contentDets.duration.tm_sec);
 
-		
-		Serial.print("------ Likes: ");
-		Serial.println(api.videoStats.likeCount);
+		Serial.print("------ Dimension: ");
+		Serial.println(api.contentDets.dimension);
 
-		Serial.print("------ Comments: ");
-		Serial.println(api.videoStats.commentCount);
+		Serial.print("------ Definition: ");
+		Serial.println(api.contentDets.defintion);
+
+		Serial.print("------ Captioned: ");
+		printYesNo(api.contentDets.caption);
+
+		Serial.print("------ Licensed Content: ");
+		printYesNo(api.contentDets.licensedContent);
+
+		Serial.print("------ Projection: ");
+		Serial.println(api.contentDets.projection);
 
 		Serial.println("-------------------------------------------------");
 	}

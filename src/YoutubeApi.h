@@ -45,6 +45,7 @@ enum operation{
 	videoListStats,
 	videoListContentDetails,
 	videoListSnippet,
+	videoListStatus,
 
 	channelListStats
 };
@@ -65,6 +66,10 @@ struct contentDetails{
 	char defintion[3];
 	bool caption;
 	bool licensedContent;
+//	char **regionRestriction;
+//	char **contentRating;
+	char projection[12];
+//	bool hasCustomThumbnail;	
 };
 
 
@@ -72,10 +77,26 @@ struct videoStatistics {
 	long viewCount;
 	long commentCount;
 	long likeCount;
+//	long favourites;	
 //	long dislikeCount;
+
 //	In Memory of the old dislike count.	
 };
 
+
+struct videoStatus{
+	bool set;
+	char *uploadStatus;
+//	char *failureReason;
+//	char *rejectionReason;
+	char *privacyStatus;
+//	tm publishAt;	
+	char *license;
+	bool embeddable;
+	bool publicStatsViewable;
+	bool madeForKids;
+//	bool selfDeclaredMadeForKids;
+};
 
 struct snippet{
 	bool set;
@@ -83,10 +104,13 @@ struct snippet{
 	char *channelId;
 	char *title;
 	char *description;
+//  char **thumbnails;
 	char *channelTitle;
+//	char **tags;
 	int categoryId;
 	char *liveBroadcastContent;
 	char *defaultLanguage;
+//  char **localized;
 	char *defaultAudioLanguage;
 };
 
@@ -110,11 +134,15 @@ class YoutubeApi
 		
 		bool getSnippet(const String& videoId);
 		bool getSnippet(const char *videoId);
-		
+
+		bool getVideoStatus(const String& videoId);
+		bool getVideoStatus(const char *videoId);
+
 		snippet snip;
 		channelStatistics channelStats;
 		videoStatistics videoStats;
 		contentDetails contentDets;
+		videoStatus vStatus;
 		bool _debug = false;
 
 	private:
@@ -124,6 +152,7 @@ class YoutubeApi
 		tm parseUploadDate(const char *dateTime);
 
 		void freeSnippet(snippet *s);
+		void freeStatus(videoStatus *s);
 		int allocAndCopy(char **pos, const char *data);
 		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
@@ -132,6 +161,7 @@ class YoutubeApi
 		bool parseVideoStatistics();
 		bool parseContentDetails();
 		bool parseSnippet();
+		bool parseVideoStatus();
 
 		void skipHeaders();
 		void closeClient();	

@@ -132,7 +132,7 @@ void setup() {
 	// Required if you are using ESP8266 V2.5 or above
 	client.setInsecure();
 	#endif
-
+	
 	// Uncomment for extra debugging info
 	// api._debug = true;
 
@@ -256,6 +256,30 @@ void loop() {
 		Serial.println(api.contentDets.projection);
 
 		Serial.println("-------------------------------------------------");
+	}
+
+	delay(timeBetweenRequests);
+
+	if(api.getVideoStatus(videoId)){
+		Serial.println("\n\n status");
+
+		Serial.print("------ upload status: ");
+		Serial.println(api.vStatus.uploadStatus);
+
+		Serial.print("------ privacy status: ");
+		Serial.println(api.vStatus.privacyStatus);
+
+		Serial.print("------ license: ");
+		Serial.println(api.vStatus.license);
+
+		Serial.print("------ embeddable: ");
+		printYesNo(api.vStatus.embeddable);
+
+		Serial.print("------ public stats viewable: ");
+		printYesNo(api.vStatus.publicStatsViewable);
+
+		Serial.print("------ made for kids: ");
+		printYesNo(api.vStatus.madeForKids);
 	}
 
 	Serial.print("\nRefreshing in ");

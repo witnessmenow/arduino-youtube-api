@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Client.h>
+#include <ctime>
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
@@ -37,6 +38,20 @@
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
+#define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
+
+enum operation{
+
+	videoListStats,
+	videoListContentDetails,
+	videoListSnippet,
+	videoListStatus,
+
+	channelListStats
+};
+
+
+// not implemented data fields are commented
 
 struct channelStatistics {
 	long viewCount;
@@ -46,12 +61,59 @@ struct channelStatistics {
 	long videoCount;
 };
 
+
+struct videoContentDetails{
+	tm duration;
+	char dimension[3];
+	char defintion[3];
+	bool caption;
+	bool licensedContent;
+//	char **regionRestriction;
+//	char **contentRating;
+	char projection[12];
+//	bool hasCustomThumbnail;	
+};
+
+
 struct videoStatistics {
 	long viewCount;
 	long commentCount;
 	long likeCount;
+//	long favourites;	
 //	long dislikeCount;
+
 //	In Memory of the old dislike count.	
+};
+
+
+struct videoStatus{
+	bool set;
+	char *uploadStatus;
+//	char *failureReason;
+//	char *rejectionReason;
+	char *privacyStatus;
+//	tm publishAt;	
+	char *license;
+	bool embeddable;
+	bool publicStatsViewable;
+	bool madeForKids;
+//	bool selfDeclaredMadeForKids;
+};
+
+struct videoSnippet{
+	bool set;
+	tm publishedAt;
+	char *channelId;
+	char *title;
+	char *description;
+//  char **thumbnails;
+	char *channelTitle;
+//	char **tags;
+	int categoryId;
+	char *liveBroadcastContent;
+	char *defaultLanguage;
+//  char **localized;
+	char *defaultAudioLanguage;
 };
 
 class YoutubeApi
@@ -59,22 +121,53 @@ class YoutubeApi
 	public:
 		YoutubeApi(const char *key, Client &client);
 		YoutubeApi(const String& apiKey, Client& client);
+
 		int sendGetToYoutube(const char *command);
 		int sendGetToYoutube(const String& command);
-		bool getChannelStatistics(const char *channelId);
+
 		bool getChannelStatistics(const String& channelId);
-		bool getVideoStatistics(const char *videoId);
+		bool getChannelStatistics(const char *channelId);
+
 		bool getVideoStatistics(const String& videoId);
+		bool getVideoStatistics(const char *videoId);
+
+		bool getVideoContentDetails(const String& videoId);
+		bool getVideoContentDetails(const char *videoId);
+		
+		bool getVideoSnippet(const String& videoId);
+		bool getVideoSnippet(const char *videoId);
+
+		bool getVideoStatus(const String& videoId);
+		bool getVideoStatus(const char *videoId);
+
 		channelStatistics channelStats;
+
+		videoSnippet videoSnip;
 		videoStatistics videoStats;
+		videoContentDetails videoContentDets;
+		videoStatus vStatus;
 		bool _debug = false;
 
 	private:
 		const String apiKey;
 		Client &client;
+		tm parseDuration(const char *duration);
+		tm parseUploadDate(const char *dateTime);
+
+		void freeVideoSnippet(videoSnippet *s);
+		void freeVideoStatus(videoStatus *s);
+		int allocAndCopy(char **pos, const char *data);
+		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
+
+		bool parseChannelStatistics();
+		bool parseVideoStatistics();
+		bool parseVideoContentDetails();
+		bool parseVideoSnippet();
+		bool parseVideoStatus();
+
 		void skipHeaders();
-		void closeClient();
+		void closeClient();	
 };
 
 #endif

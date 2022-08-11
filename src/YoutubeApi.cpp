@@ -691,50 +691,6 @@ tm YoutubeApi::parseUploadDate(const char* dateTime){
 }
 
 
-/**
- * @brief Frees memory used by strings in videoSnippet struct. Initializes it with zeros.
- * 
- * @param s Pointer to videoSnippet struct to free
- */
-void YoutubeApi::freeVideoSnippet(videoSnippet *s){
-
-	if(!s->set){
-		return;
-	}
-
-	free(s->channelId);
-	free(s->title);
-	free(s->description);
-	free(s->channelTitle);
-	free(s->liveBroadcastContent);
-	free(s->defaultLanguage);
-	free(s->defaultAudioLanguage);
-
-	memset(s, 0, sizeof(videoSnippet));
-	s->set = false;
-
-	return;
-}
-
-/**
- * @brief Frees memory used by strings in videoStatus struct. Initialzes it witn zeroes.
- * 
- * @param s Pointer to videoStatus struct to free
- */
-void YoutubeApi::freeVideoStatus(videoStatus *s){
-
-	if(!s->set){
-		return;
-	}
-
-	free(s->uploadStatus);
-	free(s->license);
-	free(s->privacyStatus);
-
-	memset(s, 0, sizeof(videoStatus));
-
-	return;
-}
 
 /**
  * @brief Allocates memory and copies a string into it.

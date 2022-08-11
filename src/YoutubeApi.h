@@ -32,6 +32,7 @@
 #include <Client.h>
 #include <ctime>
 
+#define YT_VIDEOID_LEN 11
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
 #define YTAPI_TIMEOUT 1500

@@ -369,5 +369,4 @@ vs-readme.txt
 .vscode/
 
 # custom ignores
-src/*.ino
-src/*.txt
+src/*

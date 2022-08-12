@@ -1,6 +1,4 @@
-#include <YoutubeVideo.h>
-#include <YoutubeApi.h>
-
+#include "YoutubeVideo.h"
 
 YoutubeVideo::YoutubeVideo(const char *newVideoId){
     
@@ -10,6 +8,8 @@ YoutubeVideo::YoutubeVideo(const char *newVideoId){
 
     setVideoId(newVideoId);
 }
+
+YoutubeVideo::YoutubeVideo(){}
 
 void YoutubeVideo::setVideoId(const char *newVideoId){
     
@@ -44,7 +44,7 @@ void YoutubeVideo::resetInfo(){
         videoContentDetsSet = false;
     }
 
-    memcpy(videoId, 0, YT_VIDEOID_LEN + 1);
+    strncpy(videoId, "", YT_VIDEOID_LEN + 1);
     videoIdSet = false;
 }
 
@@ -52,6 +52,7 @@ void YoutubeVideo::resetInfo(){
 YoutubeVideo::~YoutubeVideo(){
     resetInfo();
 }
+
 
 /**
  * @brief Frees memory used by strings in videoStatus struct. Initialzes it with zeroes.
@@ -74,6 +75,11 @@ void YoutubeVideo::freeVideoStatus(videoStatus *s){
 }
 
 
+bool YoutubeVideo::checkVideoIdSet(){
+    return videoIdSet;
+}
+
+
 const char* YoutubeVideo::getVideoId(){
     return videoId;
 }
@@ -83,11 +89,12 @@ String YoutubeVideo::getVideoIdString(){
 }
 
 bool YoutubeVideo::resetVideoId(const char *newVideoId){
-    resetInfo();
 
     if(newVideoId == NULL){
         return false;
     }
+
+    resetInfo();
 
     setVideoId(newVideoId);
     return true;
@@ -103,7 +110,7 @@ bool YoutubeVideo::resetVideoId(String& newVideoId){
  * 
  * @param s Pointer to videoSnippet struct to free
  */
-void YoutubeApi::freeVideoSnippet(videoSnippet *s){
+void YoutubeVideo::freeVideoSnippet(videoSnippet *s){
 
 	if(!s->set){
 		return;
@@ -122,3 +129,4 @@ void YoutubeApi::freeVideoSnippet(videoSnippet *s){
 
 	return;
 }
+

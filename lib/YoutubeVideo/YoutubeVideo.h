@@ -1,21 +1,23 @@
 #ifndef YoutubeVideo_h
 #define YoutubeVideo_h
 
+#include "YoutubeTypes.h"
 #include <Arduino.h>
-#include <YoutubeApi.h>
 
 class YoutubeVideo{
 
-    public: 
+    public:
+        YoutubeVideo();
+    
         YoutubeVideo(const char *newVideoId);
         YoutubeVideo(String& newVideoId): YoutubeVideo(newVideoId.c_str()) {};
-        YoutubeVideo();
-
+        
         ~YoutubeVideo();
 
         bool getVideoStatistics();
         bool getVideoSnippet();
         bool getVideoContentDetails();
+        bool checkVideoIdSet();
 
         bool resetVideoId(const char *newVideoId);
         bool resetVideoId(String& newVideoId);
@@ -42,6 +44,10 @@ class YoutubeVideo{
 
         void freeVideoSnippet(videoSnippet *s);
 		void freeVideoStatus(videoStatus *s);
+
+    #ifdef UNIT_TESTING 
+        friend void test_StringConstructor_simple() 
+    #endif
 
 };
 

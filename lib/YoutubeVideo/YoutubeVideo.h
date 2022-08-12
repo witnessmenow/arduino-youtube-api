@@ -40,7 +40,7 @@ class YoutubeVideo{
         bool videoContentDetsSet = false;
         bool vStatusSet = false;
 
-        void setVideoId(const char *newVideoId);
+        bool setVideoId(const char *newVideoId);
 
         void freeVideoSnippet(videoSnippet *s);
 		void freeVideoStatus(videoStatus *s);

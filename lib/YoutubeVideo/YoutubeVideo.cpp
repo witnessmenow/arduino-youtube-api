@@ -11,13 +11,30 @@ YoutubeVideo::YoutubeVideo(const char *newVideoId){
 
 YoutubeVideo::YoutubeVideo(){}
 
-void YoutubeVideo::setVideoId(const char *newVideoId){
+/**
+ * @brief Sets the new videoId. Sets videoIdSet on success
+ * 
+ * @param newVideoId new videoId to set
+ * @return true If the id is valid (len = YT_VIDEOID_LEN)
+ * @return false If the id is not valid or a null pointer.
+ */
+bool YoutubeVideo::setVideoId(const char *newVideoId){
+
+    if(!newVideoId || strlen(newVideoId) != YT_VIDEOID_LEN){
+        return false;
+    }
     
     strncpy(videoId, newVideoId, YT_VIDEOID_LEN);
     videoId[YT_VIDEOID_LEN] = '\0';
     videoIdSet = true;
+
+    return true;
 }
 
+/**
+ * @brief Deletes all information from object. 
+ * 
+ */
 void YoutubeVideo::resetInfo(){
 
     if(videoSnipSet){
@@ -74,7 +91,11 @@ void YoutubeVideo::freeVideoStatus(videoStatus *s){
 	return;
 }
 
-
+/**
+ * @brief Get function to check if videoId is set.
+ * 
+ * @return bool value of videoIdSet
+ */
 bool YoutubeVideo::checkVideoIdSet(){
     return videoIdSet;
 }
@@ -88,16 +109,21 @@ String YoutubeVideo::getVideoIdString(){
     return String(videoId);
 }
 
+/**
+ * @brief Resets the videoId and all information in the object. 
+ *  Even if the id is not valid, all information gets deleted.
+ * 
+ * @param newVideoId new video id to set
+ * @return bool true on success, false if setting the id fails
+ */
 bool YoutubeVideo::resetVideoId(const char *newVideoId){
+
+    resetInfo();
 
     if(newVideoId == NULL){
         return false;
     }
-
-    resetInfo();
-
-    setVideoId(newVideoId);
-    return true;
+    return setVideoId(newVideoId);
 }
 
 bool YoutubeVideo::resetVideoId(String& newVideoId){

@@ -35,8 +35,10 @@
 class YoutubeApi
 {
 	public:
-		YoutubeApi(const char *key, Client &client);
-		YoutubeApi(const String& apiKey, Client& client);
+		YoutubeApi(const char *key, Client &newClient);
+		YoutubeApi(const String& key, Client& newClient);
+
+		static bool createRequestString(int mode, char *command, const char *id);
 
 		int sendGetToYoutube(const char *command);
 		int sendGetToYoutube(const String& command);
@@ -63,10 +65,13 @@ class YoutubeApi
 		videoContentDetails videoContentDets;
 		videoStatus vStatus;
 		bool _debug = false;
+		Client &client;
+
+		void closeClient();	
 
 	private:
-		const String apiKey;
-		Client &client;
+		static char apiKey[YTAPI_KEY_LEN + 1];
+		// Client &client;
 		tm parseDuration(const char *duration);
 		tm parseUploadDate(const char *dateTime);
 
@@ -83,7 +88,6 @@ class YoutubeApi
 		bool parseVideoStatus();
 
 		void skipHeaders();
-		void closeClient();	
 };
 
 #endif

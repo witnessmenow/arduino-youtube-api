@@ -11,7 +11,7 @@
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
 #define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
-
+#define YTAPI_KEY_LEN 30
 
 enum operation{
 

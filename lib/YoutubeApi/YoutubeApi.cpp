@@ -30,14 +30,18 @@
 // add	custom error types
 
 #include "YoutubeApi.h"
+#include <WiFiClientSecure.h>
 
-YoutubeApi::YoutubeApi(const char* key, Client &client)
-	: apiKey(key), client(client)
-{}
+char YoutubeApi::apiKey[YTAPI_KEY_LEN + 1] = "";
 
+YoutubeApi::YoutubeApi(const char* key, Client &client) : client(client)
+{
+	strncpy(apiKey, key, YTAPI_KEY_LEN);
+	apiKey[YTAPI_KEY_LEN] = '\0';
+}
 
-YoutubeApi::YoutubeApi(const String &apiKey, Client &client) 
-	: YoutubeApi(apiKey.c_str(), client)  // passing the key as c-string to force a copy
+YoutubeApi::YoutubeApi(const String &key, Client &newClient) 
+	: YoutubeApi(key.c_str(), newClient)  // passing the key as c-string to force a copy
 {}
 
 
@@ -411,30 +415,30 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 	switch (op)
 	{
 	case videoListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey.c_str());	
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey);	
 		break;
 	
 	case videoListContentDetails:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey.c_str());
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey);
 		break;
 	
 	case videoListSnippet:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey.c_str());
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey);
 		break;
 
 	case videoListStatus:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "status", id, apiKey.c_str());
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "status", id, apiKey);
 		break;
 
 	case channelListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey.c_str());
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey);
 		break;
 	
 	default:
 		Serial.println("Unknown operation");
 		return false;
 	}
-
+	
 	if (_debug){
 		Serial.println(command);
 	}
@@ -475,6 +479,39 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 	}
 	return wasSuccessful;
 }
+
+bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
+
+	switch (mode)
+	{
+	case videoListStats:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey);	
+		break;
+	
+	case videoListContentDetails:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey);
+		break;
+	
+	case videoListSnippet:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey);
+		break;
+
+	case videoListStatus:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "status", id, apiKey);
+		break;
+
+	case channelListStats:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey);
+		break;
+	
+	default:
+		Serial.println("Unknown operation");
+		return false;
+	}
+
+	return true;	
+}
+
 
 
 /**
@@ -738,11 +775,6 @@ void YoutubeApi::skipHeaders() {
 	{
 		char c = 0;
 		client.readBytes(&c, 1);
-		if (_debug)
-		{
-			Serial.print("Tossing an unexpected character: ");
-			Serial.println(c);
-		}
 	}
 }
 
@@ -760,7 +792,6 @@ int YoutubeApi::getHttpStatusCode() {
 
 void YoutubeApi::closeClient() {
 	if(client.connected()) {
-		if(_debug) { Serial.println(F("Closing client")); }
 		client.stop();
 	}
 }

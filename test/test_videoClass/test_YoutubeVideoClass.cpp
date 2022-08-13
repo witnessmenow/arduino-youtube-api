@@ -22,7 +22,7 @@ void test_emptyConstructor()
 
 void test_constCharConstructor_simple()
 {
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
 
     TEST_ASSERT_EQUAL_STRING_MESSAGE(validIdChar, uut.getVideoId(), "Did not return right videoId!");
     TEST_ASSERT_EQUAL_MESSAGE(true, uut.checkVideoIdSet(), "videoId should be set");
@@ -30,7 +30,7 @@ void test_constCharConstructor_simple()
 
 void test_constCharConstructor_rejectId()
 {
-    YoutubeVideo uut(invalidIdChar);
+    YoutubeVideo uut(invalidIdChar, NULL);
 
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Did not return right videoId!");
     TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should be set");
@@ -38,7 +38,7 @@ void test_constCharConstructor_rejectId()
 
 void test_StringConstructor_simple()
 {
-    YoutubeVideo uut(validIdString);
+    YoutubeVideo uut(validIdString, NULL);
 
     TEST_ASSERT_EQUAL_STRING_MESSAGE(validIdChar, uut.getVideoId(), "Did not return right videoId!");
     TEST_ASSERT_EQUAL_MESSAGE(true, uut.checkVideoIdSet(), "videoId should be set");
@@ -46,7 +46,7 @@ void test_StringConstructor_simple()
 
 void test_StringConstructor_rejectId()
 {
-    YoutubeVideo uut(invalidIdString);
+    YoutubeVideo uut(invalidIdString, NULL);
 
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Did not return right videoId!");
     TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should be set");
@@ -54,7 +54,7 @@ void test_StringConstructor_rejectId()
 
 void test_resetVideoIdConstChar_simple()
 {
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
 
     bool ret = uut.resetVideoId("10987654321");
     TEST_ASSERT_EQUAL(true, ret);
@@ -74,7 +74,7 @@ void test_resetVideoIdConstChar_videoId_notSet()
 
 void test_resetVideoIdConstChar_videoId_toLong()
 {
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
 
     const char videoId[13] = "012345678910";
 
@@ -86,7 +86,7 @@ void test_resetVideoIdConstChar_videoId_toLong()
 
 void test_resetVideoIdConstChar_videoId_toShort()
 {
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
 
     const char videoId[11] = "0123456789";
     bool ret = uut.resetVideoId(videoId);
@@ -104,7 +104,7 @@ void test_getVideoIdConstChar_videoId_notSet(){
 }
 
 void test_getVideoIdConstChar_videoId_set(){
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
 
     const char* vidId = uut.getVideoId();
     TEST_ASSERT_EQUAL_STRING_MESSAGE(validIdChar, vidId, "Did not return correct string");
@@ -112,7 +112,7 @@ void test_getVideoIdConstChar_videoId_set(){
 }
 
 void test_resetInfo_afterConstruct(){
-    YoutubeVideo uut(validIdChar);
+    YoutubeVideo uut(validIdChar, NULL);
     uut.resetInfo();
 
     TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");

@@ -1,15 +1,15 @@
 #include "YoutubeVideo.h"
 
-YoutubeVideo::YoutubeVideo(const char *newVideoId){
+YoutubeVideo::YoutubeVideo(const char *newVideoId, YoutubeApi *obj){
     
     if(videoId == NULL){
         return;
     }
-
+    apiObj = obj;
     setVideoId(newVideoId);
 }
 
-YoutubeVideo::YoutubeVideo(){}
+YoutubeVideo::YoutubeVideo(): apiObj(){}
 
 /**
  * @brief Sets the new videoId. Sets videoIdSet on success
@@ -156,3 +156,58 @@ void YoutubeVideo::freeVideoSnippet(videoSnippet *s){
 	return;
 }
 
+bool YoutubeVideo::parseVideoStatistics(){
+	
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
+	                        + JSON_OBJECT_SIZE(2) 
+	                        + 2*JSON_OBJECT_SIZE(4) 
+	                        + JSON_OBJECT_SIZE(5)
+	                        + 330;
+
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client);
+
+	if (error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+
+        videoStatistics *newStats = (videoStatistics*) malloc(sizeof(videoStatistics)); 
+
+		JsonObject itemStatistics = doc["items"][0]["statistics"];
+
+		newStats->viewCount = itemStatistics["viewCount"].as<long>();
+		newStats->likeCount = itemStatistics["likeCount"].as<long>();
+		newStats->commentCount= itemStatistics["commentCount"].as<long>();
+
+        videoStats = newStats;
+		wasSuccessful = true;
+	}
+
+	apiObj->closeClient();
+
+	return wasSuccessful;
+}
+
+bool YoutubeVideo::getVideoStatistics(){
+
+    char command[150];
+    YoutubeApi::createRequestString(videoListStats, command, videoId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parseVideoStatistics();
+    }
+
+    return false;
+}

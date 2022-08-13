@@ -2,6 +2,9 @@
 #define YoutubeVideo_h
 
 #include "YoutubeTypes.h"
+#include "YoutubeApi.h"
+#include <ArduinoJson.h>
+#include <Client.h>
 #include <Arduino.h>
 
 class YoutubeVideo{
@@ -9,8 +12,8 @@ class YoutubeVideo{
     public:
         YoutubeVideo();
     
-        YoutubeVideo(const char *newVideoId);
-        YoutubeVideo(String& newVideoId): YoutubeVideo(newVideoId.c_str()) {};
+        YoutubeVideo(const char *newVideoId, YoutubeApi *apiObj);
+        YoutubeVideo(String& newVideoId, YoutubeApi *apiObj): YoutubeVideo(newVideoId.c_str(), apiObj) {};
         
         ~YoutubeVideo();
 
@@ -39,6 +42,10 @@ class YoutubeVideo{
         bool videoStatsSet = false;
         bool videoContentDetsSet = false;
         bool vStatusSet = false;
+
+        YoutubeApi *apiObj;
+
+        bool parseVideoStatistics();
 
         bool setVideoId(const char *newVideoId);
 

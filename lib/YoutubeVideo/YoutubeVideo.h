@@ -32,7 +32,7 @@ class YoutubeVideo{
 
     private:
 
-        char videoId[YT_VIDEOID_LEN + 1];
+        char videoId[YT_VIDEOID_LEN + 1] = "";
 
         bool videoIdSet = false;
         bool videoSnipSet = false;

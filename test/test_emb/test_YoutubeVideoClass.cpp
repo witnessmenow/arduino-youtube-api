@@ -9,14 +9,6 @@ const char *invalidIdChar = "123";
 String validIdString = "12345678901";
 String invalidIdString = "123";
 
-void setUp()
-{
-}
-
-void tearDown()
-{
-}
-
 void test_emptyConstructor()
 {
     YoutubeVideo uut;
@@ -84,22 +76,48 @@ void test_resetVideoIdConstChar_videoId_toLong()
 {
     YoutubeVideo uut(validIdChar);
 
-    const char videoId[15] = "01234567891011";
+    const char videoId[13] = "012345678910";
 
     bool ret = uut.resetVideoId(videoId);
     TEST_ASSERT_EQUAL(false, ret);
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "VideoId did not change correctly!");
-    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should be set");
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
 }
 
 void test_resetVideoIdConstChar_videoId_toShort()
 {
     YoutubeVideo uut(validIdChar);
 
-    bool ret = uut.resetVideoId(invalidIdChar);
+    const char videoId[11] = "0123456789";
+    bool ret = uut.resetVideoId(videoId);
     TEST_ASSERT_EQUAL(false, ret);
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "VideoId did not change correctly!");
-    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should be set");
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
+}
+
+void test_getVideoIdConstChar_videoId_notSet(){
+    YoutubeVideo uut;
+
+    const char* vidId = uut.getVideoId();
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("", vidId, "Expected a empty string, as video id has not been set yet!");
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
+}
+
+void test_getVideoIdConstChar_videoId_set(){
+    YoutubeVideo uut(validIdChar);
+
+    const char* vidId = uut.getVideoId();
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(validIdChar, vidId, "Did not return correct string");
+    TEST_ASSERT_EQUAL_MESSAGE(true, uut.checkVideoIdSet(), "videoId should be set");
+}
+
+void test_resetInfo_afterConstruct(){
+    YoutubeVideo uut(validIdChar);
+    uut.resetInfo();
+
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Expected a empty string, as video id has not been set yet!");
+
 }
 
 void setup()
@@ -120,6 +138,11 @@ void setup()
     RUN_TEST(test_resetVideoIdConstChar_videoId_notSet);
     RUN_TEST(test_resetVideoIdConstChar_videoId_toLong);
     RUN_TEST(test_resetVideoIdConstChar_videoId_toShort);
+
+    RUN_TEST(test_getVideoIdConstChar_videoId_notSet);
+    RUN_TEST(test_getVideoIdConstChar_videoId_set);
+
+    RUN_TEST(test_resetInfo_afterConstruct);
 
     UNITY_END();
 }

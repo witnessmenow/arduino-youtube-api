@@ -46,9 +46,6 @@ class YoutubeApi
 		bool getChannelStatistics(const String& channelId);
 		bool getChannelStatistics(const char *channelId);
 
-		bool getVideoStatistics(const String& videoId);
-		bool getVideoStatistics(const char *videoId);
-
 		bool getVideoContentDetails(const String& videoId);
 		bool getVideoContentDetails(const char *videoId);
 		
@@ -82,7 +79,6 @@ class YoutubeApi
 		int getHttpStatusCode();
 
 		bool parseChannelStatistics();
-		bool parseVideoStatistics();
 		bool parseVideoContentDetails();
 		bool parseVideoSnippet();
 		bool parseVideoStatus();

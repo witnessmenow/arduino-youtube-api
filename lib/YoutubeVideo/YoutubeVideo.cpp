@@ -156,6 +156,12 @@ void YoutubeVideo::freeVideoSnippet(videoSnippet *s){
 	return;
 }
 
+
+/**
+ * @brief Parses the video statistics from client in YoutubeApi object. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
 bool YoutubeVideo::parseVideoStatistics(){
 	
 	bool wasSuccessful = false;

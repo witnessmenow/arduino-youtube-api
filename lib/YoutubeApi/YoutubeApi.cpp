@@ -127,50 +127,6 @@ bool YoutubeApi::parseChannelStatistics() {
 
 
 /**
- * @brief Parses the video statistics from caller client. Stores information in calling object.
- * 
- * @return true on success, false on error 
- */
-bool YoutubeApi::parseVideoStatistics(){
-	
-	bool wasSuccessful = false;
-
-	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
-	                        + JSON_OBJECT_SIZE(2) 
-	                        + 2*JSON_OBJECT_SIZE(4) 
-	                        + JSON_OBJECT_SIZE(5)
-	                        + 330;
-
-	// Allocate DynamicJsonDocument
-	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, client);
-
-	if (error){
-		Serial.print(F("deserializeJson() failed with code "));
-		Serial.println(error.c_str());
-	}
-	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-		Serial.println("No results found for video id ");
-	}
-	else{
-		JsonObject itemStatistics = doc["items"][0]["statistics"];
-
-		videoStats.viewCount = itemStatistics["viewCount"].as<long>();
-		videoStats.likeCount = itemStatistics["likeCount"].as<long>();
-		videoStats.commentCount= itemStatistics["commentCount"].as<long>();
-
-		wasSuccessful = true;
-	}
-
-	closeClient();
-	return wasSuccessful;
-}
-
-
-/**
  * @brief Parses the video content details from caller client. Stores information in calling object.
  * 
  * @return true on success, false on error 
@@ -452,10 +408,6 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 			case channelListStats:
 				wasSuccessful = parseChannelStatistics();
 				break;
-			
-			case videoListStats:
-				wasSuccessful = parseVideoStatistics();
-				break;
 
 			case videoListContentDetails:
 				wasSuccessful = parseVideoContentDetails();
@@ -527,22 +479,6 @@ bool YoutubeApi::getChannelStatistics(const String& channelId) {
 
 bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	return getRequestedType(channelListStats, channelId);
-}
-
-
-/**
- * @brief Gets the statistics of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return true, if there were no errors and the video was found
- */
-bool YoutubeApi::getVideoStatistics(const String& videoId){
-	return getRequestedType(videoListStats, videoId.c_str());
-}
-
-
-bool YoutubeApi::getVideoStatistics(const char *videoId){
-	return getRequestedType(videoListStats, videoId);
 }
 
 

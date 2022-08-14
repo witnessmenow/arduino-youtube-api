@@ -72,23 +72,29 @@ YoutubeVideo::~YoutubeVideo(){
 
 
 /**
- * @brief Frees memory used by strings in videoStatus struct. Initialzes it with zeroes.
+ * @brief Frees memory used by strings in videoStatus struct and the struct itself.
  * 
  * @param s Pointer to videoStatus struct to free
+ * 
+ * @return true on success, false on error
  */
-void YoutubeVideo::freeVideoStatus(videoStatus *s){
+bool YoutubeVideo::freeVideoStatus(videoStatus *s){
+
+	if(!s){
+		return false;
+	}
 
 	if(!s->set){
-		return;
+		return false;
 	}
 
 	free(s->uploadStatus);
 	free(s->license);
 	free(s->privacyStatus);
 
-	memset(s, 0, sizeof(videoStatus));
+	free(s);
 
-	return;
+	return true;
 }
 
 /**
@@ -173,14 +179,19 @@ bool YoutubeVideo::resetVideoId(String& newVideoId){
 
 
 /**
- * @brief Frees memory used by strings in videoSnippet struct. Initializes it with zeros.
+ * @brief Frees memory used by strings in videoSnippet struct and the struct itself.
  * 
  * @param s Pointer to videoSnippet struct to free
+ * @return true on success, false on error
  */
-void YoutubeVideo::freeVideoSnippet(videoSnippet *s){
+bool YoutubeVideo::freeVideoSnippet(videoSnippet *s){
+
+	if(!s){
+		return false;
+	}
 
 	if(!s->set){
-		return;
+		return false;
 	}
 
 	free(s->channelId);
@@ -191,10 +202,9 @@ void YoutubeVideo::freeVideoSnippet(videoSnippet *s){
 	free(s->defaultLanguage);
 	free(s->defaultAudioLanguage);
 
-	memset(s, 0, sizeof(videoSnippet));
-	s->set = false;
+	free(s);
 
-	return;
+	return true;
 }
 
 
@@ -214,10 +224,7 @@ bool YoutubeVideo::parseVideoStatistics(){
 	                        + JSON_OBJECT_SIZE(5)
 	                        + 330;
 
-	// Allocate DynamicJsonDocument
 	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
 	DeserializationError error = deserializeJson(doc, apiObj->client);
 
 	if (error){
@@ -228,20 +235,15 @@ bool YoutubeVideo::parseVideoStatistics(){
 		Serial.println("No results found for video id ");
 	}
 	else{
-
-        //TODO check if videoStat already set
-
         videoStatistics *newStats = (videoStatistics*) malloc(sizeof(videoStatistics)); 
 
-		JsonObject itemStatistics = doc["items"][0]["statistics"];
-
-		newStats->viewCount = itemStatistics["viewCount"].as<uint64_t>();
-		newStats->likeCount = itemStatistics["likeCount"].as<uint32_t>();
-		newStats->commentCount= itemStatistics["commentCount"].as<uint32_t>();
+		newStats->viewCount = doc["items"][0]["statistics"]["viewCount"].as<uint64_t>();
+		newStats->likeCount = doc["items"][0]["statistics"]["likeCount"].as<uint32_t>();
+		newStats->commentCount= doc["items"][0]["statistics"]["commentCount"].as<uint32_t>();
 
         videoStats = newStats;
+		videoStatsSet = true;
 		wasSuccessful = true;
-        videoStatsSet = true;
 	}
 
 	apiObj->closeClient();
@@ -250,6 +252,10 @@ bool YoutubeVideo::parseVideoStatistics(){
 }
 
 bool YoutubeVideo::getVideoStatistics(){
+
+	if(checkVideoStatisticsSet()){
+		free(videoStats);
+	}
 
     char command[150];
     YoutubeApi::createRequestString(videoListStats, command, videoId);
@@ -269,6 +275,12 @@ bool YoutubeVideo::getVideoStatistics(){
  * @return wasSuccesssful true, if there were no errors and the video was found
  */
 bool YoutubeVideo::getVideoSnippet(){
+
+	if(checkVideoSnippetSet()){
+		if(!freeVideoSnippet(videoSnip)){
+			return false;
+		}
+	}
 
     char command[150];
     YoutubeApi::createRequestString(videoListSnippet, command, videoId);
@@ -325,37 +337,31 @@ bool YoutubeVideo::parseVideoSnippet(){
 		Serial.println("No results found for video id ");
 	}
 	else{
-		JsonObject itemsSnippet = doc["items"][0]["snippet"];
-
-		if(videoSnipSet){
-			freeVideoSnippet(videoSnip);
-		}
-
         videoSnippet *newSnippet = (videoSnippet*) malloc(sizeof(videoSnippet)); 
 
 		int checksum = 0;
 
-		newSnippet->publishedAt = YoutubeApi::parseUploadDate(itemsSnippet["publishedAt"]);
-		newSnippet->categoryId = itemsSnippet["categoryId"].as<int>();
+		newSnippet->publishedAt = YoutubeApi::parseUploadDate(doc["items"][0]["snippet"]["publishedAt"]);
+		newSnippet->categoryId = doc["items"][0]["snippet"]["categoryId"].as<int>();
 
-		checksum += YoutubeApi::allocAndCopy(&newSnippet->channelId, itemsSnippet["channelId"].as<const char*>());
-		checksum += YoutubeApi::allocAndCopy(&newSnippet->title, itemsSnippet["title"].as<const char*>());
-		checksum += YoutubeApi::allocAndCopy(&newSnippet->description, itemsSnippet["description"].as<const char*>());
-		checksum += YoutubeApi::allocAndCopy(&newSnippet->channelTitle, itemsSnippet["channelTitle"].as<const char*>());
-		checksum += YoutubeApi::allocAndCopy(&newSnippet->liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
+		checksum += YoutubeApi::allocAndCopy(&newSnippet->channelId, doc["items"][0]["snippet"]["channelId"].as<const char*>());
+		checksum += YoutubeApi::allocAndCopy(&newSnippet->title, doc["items"][0]["snippet"]["title"].as<const char*>());
+		checksum += YoutubeApi::allocAndCopy(&newSnippet->description, doc["items"][0]["snippet"]["description"].as<const char*>());
+		checksum += YoutubeApi::allocAndCopy(&newSnippet->channelTitle, doc["items"][0]["snippet"]["channelTitle"].as<const char*>());
+		checksum += YoutubeApi::allocAndCopy(&newSnippet->liveBroadcastContent, doc["items"][0]["snippet"]["liveBroadcastContent"].as<const char*>());
 
 		// language informations appears to be optional, so it is being checked if it is in response
 		// if not, a placeholder will be set
-		if(!itemsSnippet["defaultLanguage"].as<const char*>()){
+		if(!doc["items"][0]["snippet"]["defaultLanguage"].as<const char*>()){
 			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultLanguage, "");
 		}else{
-			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
+			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultLanguage, doc["items"][0]["snippet"]["defaultLanguage"].as<const char*>());
 		}
 
-		if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
+		if(!doc["items"][0]["snippet"]["defaultAudioLanguage"].as<const char*>()){
 			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultAudioLanguage, "");
 		}else{
-			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
+			checksum += YoutubeApi::allocAndCopy(&newSnippet->defaultAudioLanguage, doc["items"][0]["snippet"]["defaultAudioLanguage"].as<const char*>());
 		}
 			
 		if(checksum){

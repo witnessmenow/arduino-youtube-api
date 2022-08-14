@@ -57,8 +57,8 @@ class YoutubeVideo{
 
         bool setVideoId(const char *newVideoId);
 
-        void freeVideoSnippet(videoSnippet *s);
-		void freeVideoStatus(videoStatus *s);
+        bool freeVideoSnippet(videoSnippet *s);
+		bool freeVideoStatus(videoStatus *s);
 
     #ifdef UNIT_TESTING 
         friend void test_StringConstructor_simple() 

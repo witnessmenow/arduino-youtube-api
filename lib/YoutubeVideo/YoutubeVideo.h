@@ -20,12 +20,19 @@ class YoutubeVideo{
         bool getVideoStatistics();
         bool getVideoSnippet();
         bool getVideoContentDetails();
+
         bool checkVideoIdSet();
+        bool checkVideoSnippetSet();
+        bool checkVideoStatisticsSet();
+        bool checkVideoContentDetailsSet();
+        bool checkVideoStatusSet();
 
         bool resetVideoId(const char *newVideoId);
         bool resetVideoId(String& newVideoId);
         void resetInfo();
+
         const char* getVideoId();
+        YoutubeApi* getYoutubeApiObj();
         String getVideoIdString();
 
         videoSnippet *videoSnip = NULL;
@@ -46,6 +53,7 @@ class YoutubeVideo{
         YoutubeApi *apiObj;
 
         bool parseVideoStatistics();
+        bool parseVideoSnippet();
 
         bool setVideoId(const char *newVideoId);
 

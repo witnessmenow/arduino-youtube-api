@@ -189,97 +189,6 @@ bool YoutubeApi::parseVideoContentDetails(){
 	return wasSuccessful;
 }
 
-
-/**
- * @brief Parses the video snippet from caller client. Stores information in calling object.
- * 
- * @return true on success, false on error 
- */
-bool YoutubeApi::parseVideoSnippet(){
-
-	bool wasSuccessful = false;
-
-	// should be more, just to test
-	// description can be as large as 5kb, title 400 bytes
-	const size_t bufferSize = 6000;
-
-	// Creating a filter to filter out 
-	// metadata, thumbnail links, tags, localized information
-	StaticJsonDocument<256> filter;
-
-	JsonObject filterItems = filter["items"][0].createNestedObject("snippet");
-	filterItems["publishedAt"] = true;
-	filterItems["channelId"] = true;
-	filterItems["channelTitle"] = true;
-	filterItems["title"] = true;
-	filterItems["description"] = true;
-	filterItems["categoryId"] = true;
-	filterItems["liveBroadcastContent"] = true;
-	filterItems["defaultLanguage"] = true;
-	filterItems["defaultAudioLanguage"] = true;
-	filter["pageInfo"] = true;
-
-	// Allocate DynamicJsonDocument
-	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
-
-	// check for errors and empty response
-	if(error){
-		Serial.print(F("deserializeJson() failed with code "));
-		Serial.println(error.c_str());
-	}
-	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-		Serial.println("No results found for video id ");
-	}
-	else{
-		JsonObject itemsSnippet = doc["items"][0]["snippet"];
-
-		if(videoSnip.set){
-			freeVideoSnippet(&videoSnip);
-		}
-		int checksum = 0;
-
-		videoSnip.publishedAt = parseUploadDate(itemsSnippet["publishedAt"]);
-		videoSnip.categoryId = itemsSnippet["categoryId"].as<int>();
-
-		checksum += allocAndCopy(&videoSnip.channelId, itemsSnippet["channelId"].as<const char*>());
-		checksum += allocAndCopy(&videoSnip.title, itemsSnippet["title"].as<const char*>());
-		checksum += allocAndCopy(&videoSnip.description, itemsSnippet["description"].as<const char*>());
-		checksum += allocAndCopy(&videoSnip.channelTitle, itemsSnippet["channelTitle"].as<const char*>());
-		checksum += allocAndCopy(&videoSnip.liveBroadcastContent, itemsSnippet["liveBroadcastContent"].as<const char*>());
-
-		// language informations appears to be optional, so it is being checked if it is in response
-		// if not, a placeholder will be set
-		if(!itemsSnippet["defaultLanguage"].as<const char*>()){
-			checksum += allocAndCopy(&videoSnip.defaultLanguage, "");
-		}else{
-			checksum += allocAndCopy(&videoSnip.defaultLanguage, itemsSnippet["defaultLanguage"].as<const char*>());
-		}
-
-		if(!itemsSnippet["defaultAudioLanguage"].as<const char*>()){
-			checksum += allocAndCopy(&videoSnip.defaultAudioLanguage, "");
-		}else{
-			checksum += allocAndCopy(&videoSnip.defaultAudioLanguage, itemsSnippet["defaultAudioLanguage"].as<const char*>());
-		}
-			
-		if(checksum){
-			// don't set snip.set flag in order to avoid false free
-			Serial.print("Error reading in response values. Checksum: ");
-			Serial.println(checksum);
-			videoSnip.set = false;
-			wasSuccessful = false;
-		}else{
-			videoSnip.set = true;
-			wasSuccessful = true;
-		}
-	}
-
-	closeClient();
-	return wasSuccessful;
-}
-
 /**
  * @brief Parses the video status from caller client. Stores information in calling object.
  * 
@@ -413,10 +322,6 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 				wasSuccessful = parseVideoContentDetails();
 				break;
 			
-			case videoListSnippet:
-				wasSuccessful = parseVideoSnippet();
-				break;
-
 			case videoListStatus:
 				wasSuccessful = parseVideoStatus();
 				break;
@@ -495,22 +400,6 @@ bool YoutubeApi::getVideoContentDetails(const String& videoId){
 
 bool YoutubeApi::getVideoContentDetails(const char *videoId){
 	return getRequestedType(videoListContentDetails, videoId);
-}
-
-
-/**
- * @brief Gets the snippet of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return wasSuccesssful true, if there were no errors and the video was found
- */
-bool YoutubeApi::getVideoSnippet(const String& videoId){
-	return getRequestedType(videoListSnippet, videoId.c_str());
-}
-
-
-bool YoutubeApi::getVideoSnippet(const char *videoId){
-	return getRequestedType(videoListSnippet, videoId);
 }
 
 
@@ -679,18 +568,23 @@ int YoutubeApi::allocAndCopy(char **pos, const char *data){
 		return 1;
 	}
 
-	size_t size = strlen(data) + 1;
-	char *space = (char*) malloc(size);
+	if(!pos){
+		Serial.println("pos is a NULL pointer!");
+		return 1;
+	}
 
-	if(!space){
+	size_t sizeOfData = strlen(data) + 1;
+	char *allocatedMemory = (char*) malloc(sizeOfData);
+
+	if(!allocatedMemory){
 		Serial.println("malloc returned NULL pointer!");
 		return 1;
 	}
 
-	*pos = space;
+	*pos = allocatedMemory;
 
-	memcpy(space, data, size);
-	space[size - 1] = '\0';
+	memcpy(allocatedMemory, data, sizeOfData);
+	allocatedMemory[sizeOfData - 1] = '\0';
 
 	return 0;
 }

@@ -124,12 +124,24 @@ void test_resetInfo_afterConstruct(){
 
 }
 
+
+void test_resetInfo_keepYoutubeApi_obj(){
+    WiFiClientSecure client;
+    YoutubeApi apiObject(API_KEY, client);
+    YoutubeApi *pointerToObj = &apiObject;
+    YoutubeVideo uut(validIdChar, pointerToObj);
+
+    uut.resetInfo();
+
+    TEST_ASSERT_EQUAL_MESSAGE(pointerToObj, uut.getYoutubeApiObj(), "YoutubeApi object should remain the same!");
+}
+
 bool establishInternetConnection(){
     WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
     delay(100);
 
-    WiFi.begin(SSID, WIFI_PASSWORD);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     delay(2000);
 
     if(!WiFi.status() != WL_CONNECTED){
@@ -153,8 +165,9 @@ void test_getVideoStats_simple(){
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatistics();
 
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoStats, "There should be a videoStatistics object set!");
     TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoStats, "There should be a videoStatistics object set!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkVideoStatisticsSet(), "Video statistics flag should be set!");
 }
 
 void test_getVideoStats_simple_reset(){
@@ -175,9 +188,52 @@ void test_getVideoStats_simple_reset(){
 
     uut.resetInfo();
 
+    TEST_ASSERT_FALSE_MESSAGE(uut.checkVideoStatisticsSet(), "Video statistics flag should not be set!");
     TEST_ASSERT_EQUAL_MESSAGE(NULL, uut.videoStats, "Videostats should have been reset!");
     TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Expected a empty string, as video id has not been set yet!");
+}
+
+
+void test_getVideoSnippet_simple(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoSnippet();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkVideoSnippetSet(), "Video snippet flag should be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoSnip, "There should be a snippet object set!");
+}
+
+void test_getVideoSnippet_simple_reset(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoSnippet();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkVideoSnippetSet(), "Video snippet flag should be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoSnip, "There should be a snippet object set!");
+
+    uut.resetInfo();
+
+    TEST_ASSERT_FALSE_MESSAGE(uut.checkVideoSnippetSet(), "Video snippet flag should not be set!");
+    TEST_ASSERT_EQUAL_MESSAGE(NULL, uut.videoSnip, "Videosnippet should have been reset!");
 }
 
 void setup()
@@ -203,12 +259,18 @@ void setup()
     RUN_TEST(test_getVideoIdConstChar_videoId_set);
 
     RUN_TEST(test_resetInfo_afterConstruct);
+    RUN_TEST(test_resetInfo_keepYoutubeApi_obj);
+
 
     establishInternetConnection();
     RUN_TEST(test_getVideoStats_simple);
-    delay(250);
+    delay(100);
     RUN_TEST(test_getVideoStats_simple_reset);
-    
+    delay(100);
+    RUN_TEST(test_getVideoSnippet_simple);
+    delay(100);
+    RUN_TEST(test_getVideoSnippet_simple_reset);
+
     UNITY_END();
 }
 

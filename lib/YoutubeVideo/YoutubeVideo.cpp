@@ -235,9 +235,9 @@ bool YoutubeVideo::parseVideoStatistics(){
 
 		JsonObject itemStatistics = doc["items"][0]["statistics"];
 
-		newStats->viewCount = itemStatistics["viewCount"].as<unsigned long long int>();
-		newStats->likeCount = itemStatistics["likeCount"].as<long>();
-		newStats->commentCount= itemStatistics["commentCount"].as<long>();
+		newStats->viewCount = itemStatistics["viewCount"].as<uint64_t>();
+		newStats->likeCount = itemStatistics["likeCount"].as<uint32_t>();
+		newStats->commentCount= itemStatistics["commentCount"].as<uint32_t>();
 
         videoStats = newStats;
 		wasSuccessful = true;

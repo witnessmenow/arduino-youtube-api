@@ -2,6 +2,7 @@
 #define YT_TYPES
 
 #include <ctime>
+#include <inttypes.h>
 
 #define YT_VIDEOID_LEN 11
 #define YTAPI_HOST "www.googleapis.com"
@@ -49,9 +50,9 @@ struct videoContentDetails{
 
 
 struct videoStatistics {
-	unsigned long long int viewCount; // required for popular videos. (Baby Shark would else overflow xD)
-	unsigned long commentCount;
-	unsigned long likeCount;
+	uint64_t viewCount; // required for popular videos. (Baby Shark would else overflow xD)
+	uint32_t commentCount;
+	uint32_t likeCount;
 //	long favourites;	
 //	long dislikeCount;
 

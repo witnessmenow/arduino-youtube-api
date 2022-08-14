@@ -381,3 +381,98 @@ bool YoutubeVideo::parseVideoSnippet(){
 	delay(20);
 	return wasSuccessful;
 }
+
+/**
+ * @brief Gets the status of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return wasSuccesssful true, if there were no errors and the video was found
+ */
+bool YoutubeVideo::getVideoStatus(){
+	if(checkVideoStatusSet()){
+		if(!freeVideoStatus(vStatus)){
+			return false;
+		}
+	}
+
+    char command[150];
+    YoutubeApi::createRequestString(videoListStatus, command, videoId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parseVideoStatus();
+    }
+    return false;
+}
+
+
+/**
+ * @brief Parses the video status from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeVideo::parseVideoStatus(){
+
+	bool wasSuccessful = false;
+	const size_t bufferSize = 384;
+
+	// Creating a filter to filter out 
+	// metadata, thumbnail links, tags, localized information
+
+	StaticJsonDocument<192> filter;
+
+	JsonObject filterItems = filter["items"][0].createNestedObject("status");
+	filterItems["uploadStatus"] = true;
+	filterItems["privacyStatus"] = true;
+	filterItems["license"] = true;
+	filterItems["embeddable"] = true;
+	filterItems["publicStatsViewable"] = true;
+	filterItems["madeForKids"] = true;
+
+	JsonObject filterPageInfo = filter.createNestedObject("pageInfo");
+	filterPageInfo["totalResults"] = true;
+	filterPageInfo["resultsPerPage"] = true;
+
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client, DeserializationOption::Filter(filter));
+
+	// check for errors and empty response
+	if(error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+		JsonObject itemsStatus = doc["items"][0]["status"];
+
+		videoStatus *newVideoStatus = (videoStatus*) malloc(sizeof(videoStatus));
+
+		int checksum = 0;
+		checksum += YoutubeApi::allocAndCopy(&newVideoStatus->uploadStatus, itemsStatus["uploadStatus"]);
+		checksum += YoutubeApi::allocAndCopy(&newVideoStatus->privacyStatus, itemsStatus["privacyStatus"]);
+		checksum += YoutubeApi::allocAndCopy(&newVideoStatus->license, itemsStatus["license"]);
+		
+		newVideoStatus->embeddable = itemsStatus["embeddable"]; // true
+		newVideoStatus->publicStatsViewable = itemsStatus["publicStatsViewable"]; // true
+		newVideoStatus->madeForKids = itemsStatus["madeForKids"];
+		
+		if(checksum){
+			// don't set videoStatus.set flag in order to avoid false free
+			Serial.print("Error reading in response values. Checksum: ");
+			Serial.println(checksum);
+			wasSuccessful = false;
+		}else{
+			vStatusSet = true;
+			vStatus = newVideoStatus;
+			wasSuccessful = true;
+		}
+	}
+
+	apiObj->closeClient();
+	return wasSuccessful;
+}

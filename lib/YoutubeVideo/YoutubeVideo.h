@@ -20,6 +20,7 @@ class YoutubeVideo{
         bool getVideoStatistics();
         bool getVideoSnippet();
         bool getVideoContentDetails();
+        bool getVideoStatus();
 
         bool checkVideoIdSet();
         bool checkVideoSnippetSet();
@@ -54,6 +55,7 @@ class YoutubeVideo{
 
         bool parseVideoStatistics();
         bool parseVideoSnippet();
+        bool parseVideoStatus();
 
         bool setVideoId(const char *newVideoId);
 

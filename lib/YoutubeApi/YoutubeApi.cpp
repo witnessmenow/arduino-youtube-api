@@ -190,80 +190,6 @@ bool YoutubeApi::parseVideoContentDetails(){
 }
 
 /**
- * @brief Parses the video status from caller client. Stores information in calling object.
- * 
- * @return true on success, false on error 
- */
-bool YoutubeApi::parseVideoStatus(){
-
-	bool wasSuccessful = false;
-	const size_t bufferSize = 384;
-
-	// Creating a filter to filter out 
-	// metadata, thumbnail links, tags, localized information
-
-	StaticJsonDocument<192> filter;
-
-	JsonObject filterItems = filter["items"][0].createNestedObject("status");
-	filterItems["uploadStatus"] = true;
-	filterItems["privacyStatus"] = true;
-	filterItems["license"] = true;
-	filterItems["embeddable"] = true;
-	filterItems["publicStatsViewable"] = true;
-	filterItems["madeForKids"] = true;
-
-	JsonObject filterPageInfo = filter.createNestedObject("pageInfo");
-	filterPageInfo["totalResults"] = true;
-	filterPageInfo["resultsPerPage"] = true;
-
-	// Allocate DynamicJsonDocument
-	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
-
-	// check for errors and empty response
-	if(error){
-		Serial.print(F("deserializeJson() failed with code "));
-		Serial.println(error.c_str());
-	}
-	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-		Serial.println("No results found for video id ");
-	}
-	else{
-		JsonObject itemsStatus = doc["items"][0]["status"];
-
-		if(vStatus.set){
-			freeVideoStatus(&vStatus);
-		}
-
-		int checksum = 0;
-		checksum += allocAndCopy(&vStatus.uploadStatus, itemsStatus["uploadStatus"]);
-		checksum += allocAndCopy(&vStatus.privacyStatus, itemsStatus["privacyStatus"]);
-		checksum += allocAndCopy(&vStatus.license, itemsStatus["license"]);
-		
-		vStatus.embeddable = itemsStatus["embeddable"]; // true
-		vStatus.publicStatsViewable = itemsStatus["publicStatsViewable"]; // true
-		vStatus.madeForKids = itemsStatus["madeForKids"];
-		
-		if(checksum){
-			// don't set videoStatus.set flag in order to avoid false free
-			Serial.print("Error reading in response values. Checksum: ");
-			Serial.println(checksum);
-			vStatus.set = false;
-			wasSuccessful = false;
-		}else{
-			vStatus.set = true;
-			wasSuccessful = true;
-		}
-	}
-
-	closeClient();
-	return wasSuccessful;
-}
-
-
-/**
  * @brief Makes an API request for a specific endpoint and type. Calls a parsing function
  * to handle parsing.
  * 
@@ -320,10 +246,6 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 
 			case videoListContentDetails:
 				wasSuccessful = parseVideoContentDetails();
-				break;
-			
-			case videoListStatus:
-				wasSuccessful = parseVideoStatus();
 				break;
 
 			default:
@@ -401,24 +323,6 @@ bool YoutubeApi::getVideoContentDetails(const String& videoId){
 bool YoutubeApi::getVideoContentDetails(const char *videoId){
 	return getRequestedType(videoListContentDetails, videoId);
 }
-
-
-/**
- * @brief Gets the status of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return wasSuccesssful true, if there were no errors and the video was found
- */
-bool YoutubeApi::getVideoStatus(const String& videoId){
-	return getRequestedType(videoListStatus, videoId.c_str());
-}
-
-
-bool YoutubeApi::getVideoStatus(const char *videoId){
-	return getRequestedType(videoListStatus, videoId);
-}
-
-
 
 /**
  * @brief Parses the ISO8601 duration string into a tm time struct.

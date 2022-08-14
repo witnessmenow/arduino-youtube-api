@@ -49,18 +49,12 @@ class YoutubeApi
 		bool getVideoContentDetails(const String& videoId);
 		bool getVideoContentDetails(const char *videoId);
 
-		bool getVideoStatus(const String& videoId);
-		bool getVideoStatus(const char *videoId);
-
 		static int allocAndCopy(char **pos, const char *data);
 		static tm parseUploadDate(const char *dateTime);
 
 		channelStatistics channelStats;
-
-		videoSnippet videoSnip;
-		videoStatistics videoStats;
 		videoContentDetails videoContentDets;
-		videoStatus vStatus;
+		
 		bool _debug = false;
 		Client &client;
 
@@ -68,17 +62,12 @@ class YoutubeApi
 
 	private:
 		static char apiKey[YTAPI_KEY_LEN + 1];
-		// Client &client;
 		tm parseDuration(const char *duration);
-
-		void freeVideoSnippet(videoSnippet *s);
-		void freeVideoStatus(videoStatus *s);
 		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
 
 		bool parseChannelStatistics();
 		bool parseVideoContentDetails();
-		bool parseVideoStatus();
 
 		void skipHeaders();
 };

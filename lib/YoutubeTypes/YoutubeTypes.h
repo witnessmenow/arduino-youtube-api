@@ -49,9 +49,9 @@ struct videoContentDetails{
 
 
 struct videoStatistics {
-	long viewCount;
-	long commentCount;
-	long likeCount;
+	unsigned long long int viewCount; // required for popular videos. (Baby Shark would else overflow xD)
+	unsigned long commentCount;
+	unsigned long likeCount;
 //	long favourites;	
 //	long dislikeCount;
 

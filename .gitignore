@@ -370,3 +370,4 @@ vs-readme.txt
 
 # custom ignores
 src/*
+lib/secrets/*

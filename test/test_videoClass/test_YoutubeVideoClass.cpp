@@ -2,6 +2,10 @@
 #include <Arduino.h>
 #include "YoutubeVideo.h"
 
+#include <WiFiClientSecure.h>
+#include <WiFi.h>
+#include "secrets.h" // API key and wifi password are defined in here
+
 #define UNIT_TESTING 1
 
 const char *validIdChar = "12345678901";
@@ -120,6 +124,62 @@ void test_resetInfo_afterConstruct(){
 
 }
 
+bool establishInternetConnection(){
+    WiFi.mode(WIFI_STA);
+	WiFi.disconnect();
+    delay(100);
+
+    WiFi.begin(SSID, WIFI_PASSWORD);
+    delay(2000);
+
+    if(!WiFi.status() != WL_CONNECTED){
+        return false;
+    }
+
+    return false;
+}
+
+
+void test_getVideoStats_simple(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoStatistics();
+
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoStats, "There should be a videoStatistics object set!");
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+}
+
+void test_getVideoStats_simple_reset(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoStatistics();
+
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoStats, "There should be a videoStatistics object set!");
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+
+    uut.resetInfo();
+
+    TEST_ASSERT_EQUAL_MESSAGE(NULL, uut.videoStats, "Videostats should have been reset!");
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Expected a empty string, as video id has not been set yet!");
+}
+
 void setup()
 {
 
@@ -144,6 +204,11 @@ void setup()
 
     RUN_TEST(test_resetInfo_afterConstruct);
 
+    establishInternetConnection();
+    RUN_TEST(test_getVideoStats_simple);
+    delay(250);
+    RUN_TEST(test_getVideoStats_simple_reset);
+    
     UNITY_END();
 }
 

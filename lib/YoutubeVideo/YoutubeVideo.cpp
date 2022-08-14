@@ -198,6 +198,7 @@ bool YoutubeVideo::parseVideoStatistics(){
 
         videoStats = newStats;
 		wasSuccessful = true;
+        videoStatsSet = true;
 	}
 
 	apiObj->closeClient();

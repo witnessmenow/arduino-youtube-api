@@ -46,14 +46,11 @@ class YoutubeApi
 		bool getChannelStatistics(const String& channelId);
 		bool getChannelStatistics(const char *channelId);
 
-		bool getVideoContentDetails(const String& videoId);
-		bool getVideoContentDetails(const char *videoId);
-
 		static int allocAndCopy(char **pos, const char *data);
 		static tm parseUploadDate(const char *dateTime);
+		static tm parseDuration(const char *duration);
 
 		channelStatistics channelStats;
-		videoContentDetails videoContentDets;
 		
 		bool _debug = false;
 		Client &client;
@@ -62,12 +59,10 @@ class YoutubeApi
 
 	private:
 		static char apiKey[YTAPI_KEY_LEN + 1];
-		tm parseDuration(const char *duration);
 		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
 
 		bool parseChannelStatistics();
-		bool parseVideoContentDetails();
 
 		void skipHeaders();
 };

@@ -127,69 +127,6 @@ bool YoutubeApi::parseChannelStatistics() {
 
 
 /**
- * @brief Parses the video content details from caller client. Stores information in calling object.
- * 
- * @return true on success, false on error 
- */
-bool YoutubeApi::parseVideoContentDetails(){
-	bool wasSuccessful = false;
-
-	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = 384;
-
-	
-	// Creating a filter to filter out 
-	// region restrictions, content rating and metadata
-	StaticJsonDocument<180> filter;
-
-	JsonObject filterItems = filter["items"][0].createNestedObject("contentDetails");
-	filterItems["duration"] = true;
-	filterItems["dimension"] = true;
-	filterItems["definition"] = true;
-	filterItems["caption"] = true;
-	filterItems["licensedContent"] = true;
-	filterItems["projection"] = true;
-	filter["pageInfo"] = true;
-
-	// Allocate DynamicJsonDocument
-	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, client, DeserializationOption::Filter(filter));
-
-	// check for errors and empty response
-	if(error){
-		Serial.print(F("deserializeJson() failed with code "));
-		Serial.println(error.c_str());
-	}
-	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
-		Serial.println("No results found for video id ");
-	}
-	else{
-		wasSuccessful = true;
-
-		JsonObject itemcontentDetails = doc["items"][0]["contentDetails"];
-
-		memcpy(videoContentDets.defintion, itemcontentDetails["definition"].as<const char *>(), 3);
-		memcpy(videoContentDets.dimension, itemcontentDetails["dimension"].as<const char *>(), 3);
-		strcpy(videoContentDets.projection, itemcontentDetails["projection"].as<const char*>());
-
-		if("false" == itemcontentDetails["caption"]){
-			videoContentDets.caption = true;
-		}
-		else{
-			videoContentDets.caption = false;
-		}
-			
-		videoContentDets.licensedContent = itemcontentDetails["licensedContent"].as<bool>();
-		videoContentDets.duration = parseDuration(itemcontentDetails["duration"].as<const char*>());
-	}
-		
-	closeClient();
-	return wasSuccessful;
-}
-
-/**
  * @brief Makes an API request for a specific endpoint and type. Calls a parsing function
  * to handle parsing.
  * 
@@ -243,11 +180,7 @@ bool YoutubeApi::getRequestedType(int op, const char *id) {
 			case channelListStats:
 				wasSuccessful = parseChannelStatistics();
 				break;
-
-			case videoListContentDetails:
-				wasSuccessful = parseVideoContentDetails();
-				break;
-
+				
 			default:
 				wasSuccessful = false;
 				break;
@@ -306,22 +239,6 @@ bool YoutubeApi::getChannelStatistics(const String& channelId) {
 
 bool YoutubeApi::getChannelStatistics(const char *channelId) {
 	return getRequestedType(channelListStats, channelId);
-}
-
-
-/**
- * @brief Gets the content details of a specific video. Stores them in the calling object.
- * 
- * @param videoId videoID of the video to get the information from
- * @return true, if there were no errors and the video was found
- */
-bool YoutubeApi::getVideoContentDetails(const String& videoId){
-	return getRequestedType(videoListContentDetails, videoId.c_str());
-}
-
-
-bool YoutubeApi::getVideoContentDetails(const char *videoId){
-	return getRequestedType(videoListContentDetails, videoId);
 }
 
 /**

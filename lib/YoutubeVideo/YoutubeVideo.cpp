@@ -255,6 +255,8 @@ bool YoutubeVideo::getVideoStatistics(){
 
 	if(checkVideoStatisticsSet()){
 		free(videoStats);
+		videoStatsSet = false;
+		videoStats = NULL;
 	}
 
     char command[150];
@@ -280,6 +282,9 @@ bool YoutubeVideo::getVideoSnippet(){
 		if(!freeVideoSnippet(videoSnip)){
 			return false;
 		}
+
+		videoSnipSet = false;
+		videoSnip = NULL;
 	}
 
     char command[150];
@@ -393,6 +398,8 @@ bool YoutubeVideo::getVideoStatus(){
 		if(!freeVideoStatus(vStatus)){
 			return false;
 		}
+		vStatusSet = false;
+		vStatus = NULL;
 	}
 
     char command[150];
@@ -473,6 +480,96 @@ bool YoutubeVideo::parseVideoStatus(){
 		}
 	}
 
+	apiObj->closeClient();
+	return wasSuccessful;
+}
+
+/**
+ * @brief Gets the content details of a specific video. Stores them in the calling object.
+ * 
+ * @param videoId videoID of the video to get the information from
+ * @return true, if there were no errors and the video was found
+ */
+bool YoutubeVideo::getVideoContentDetails(){
+		if(videoContentDetsSet){
+			free(videoContentDets);
+			videoContentDets = NULL;
+			videoContentDetsSet = false;
+		}
+
+    char command[150];
+    YoutubeApi::createRequestString(videoListContentDetails, command, videoId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parseVideoContentDetails();
+    }
+    return false;
+}
+
+
+/**
+ * @brief Parses the video content details from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeVideo::parseVideoContentDetails(){
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 384;
+
+	
+	// Creating a filter to filter out 
+	// region restrictions, content rating and metadata
+	StaticJsonDocument<180> filter;
+
+	JsonObject filterItems = filter["items"][0].createNestedObject("contentDetails");
+	filterItems["duration"] = true;
+	filterItems["dimension"] = true;
+	filterItems["definition"] = true;
+	filterItems["caption"] = true;
+	filterItems["licensedContent"] = true;
+	filterItems["projection"] = true;
+	filter["pageInfo"] = true;
+
+	// Allocate DynamicJsonDocument
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client, DeserializationOption::Filter(filter));
+
+	// check for errors and empty response
+	if(error){
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+	else if(doc["pageInfo"]["totalResults"].as<int>() == 0){
+		Serial.println("No results found for video id ");
+	}
+	else{
+		videoContentDetails *newContentDetails = (videoContentDetails*) malloc(sizeof(videoContentDetails));
+
+		memcpy(newContentDetails ->defintion, doc["items"][0]["contentDetails"]["definition"].as<const char *>(), 3);
+		memcpy(newContentDetails ->dimension, doc["items"][0]["contentDetails"]["dimension"].as<const char *>(), 3);
+		strcpy(newContentDetails ->projection, doc["items"][0]["contentDetails"]["projection"].as<const char*>());
+
+		if("false" == doc["items"][0]["contentDetails"]["caption"]){
+			newContentDetails ->caption = true;
+		}
+		else{
+			newContentDetails->caption = false;
+		}
+			
+		newContentDetails ->licensedContent = doc["items"][0]["contentDetails"]["licensedContent"].as<bool>();
+		newContentDetails ->duration = YoutubeApi::parseDuration(doc["items"][0]["contentDetails"]["duration"].as<const char*>());
+
+		videoContentDets = newContentDetails;
+		videoContentDetsSet = true;
+
+		wasSuccessful = true;
+	}
+		
 	apiObj->closeClient();
 	return wasSuccessful;
 }

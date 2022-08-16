@@ -56,6 +56,7 @@ class YoutubeVideo{
         bool parseVideoStatistics();
         bool parseVideoSnippet();
         bool parseVideoStatus();
+        bool parseVideoContentDetails();
 
         bool setVideoId(const char *newVideoId);
 

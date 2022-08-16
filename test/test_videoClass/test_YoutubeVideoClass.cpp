@@ -279,6 +279,50 @@ void test_getVideoStatus_simple_reset(){
     TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Expected a empty string, as video id has not been set yet!");
 }
 
+
+void test_getVideoContentDetails_simple(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoContentDetails();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkVideoContentDetailsSet(), "Video content details flag should be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoContentDets, "There should be a content details object set!");
+}
+
+void test_getVideoContentDetails_simple_reset(){
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    client.setInsecure();
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
+    bool ret = uut.getVideoContentDetails();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch video info!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkVideoContentDetailsSet(), "Video content details flag should be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.videoContentDets, "There should be a content details object set!");
+
+    uut.resetInfo();
+
+    TEST_ASSERT_FALSE_MESSAGE(uut.checkVideoContentDetailsSet(), "Video content details flag should not be set!");
+    TEST_ASSERT_EQUAL_MESSAGE(NULL, uut.videoContentDets, "There should not be a content details object set!");
+    TEST_ASSERT_EQUAL_MESSAGE(false, uut.checkVideoIdSet(), "videoId should not be set");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("", uut.getVideoId(), "Expected a empty string, as video id has not been set yet!");
+}
+
 void setup()
 {
 
@@ -317,6 +361,10 @@ void setup()
     RUN_TEST(test_getVideoStatus_simple);
     delay(100);
     RUN_TEST(test_getVideoStatus_simple_reset);
+    delay(100);
+    RUN_TEST(test_getVideoContentDetails_simple);
+    delay(100);
+    RUN_TEST(test_getVideoContentDetails_simple_reset);
 
     UNITY_END();
 }

@@ -5,6 +5,8 @@
 #include <inttypes.h>
 
 #define YT_VIDEOID_LEN 11
+#define YT_CHANNELID_LEN 24
+
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
 #define YTAPI_TIMEOUT 1500

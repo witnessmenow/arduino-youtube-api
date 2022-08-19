@@ -2,7 +2,7 @@
 
 YoutubeVideo::YoutubeVideo(const char *newVideoId, YoutubeApi *obj){
     
-    if(videoId == NULL){
+    if(newVideoId == NULL){
         return;
     }
     apiObj = obj;

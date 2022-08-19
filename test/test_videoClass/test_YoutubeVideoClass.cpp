@@ -6,6 +6,7 @@
 #include "secrets.h" // API key and wifi password are defined in here
 
 #define UNIT_TESTING 1
+#define MAX_WIFI_RETRIES 10
 
 const char *validIdChar = "12345678901";
 const char *invalidIdChar = "123";
@@ -141,12 +142,13 @@ bool establishInternetConnection(){
     delay(100);
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    delay(2000);
 
-    if(!WiFi.status() != WL_CONNECTED){
-        return false;
+    for(int tryWIFI = 1; tryWIFI < MAX_WIFI_RETRIES; tryWIFI++){
+        if(WiFi.status() == WL_CONNECTED){
+            return true;
+        }
+        delay(1000);
     }
-
     return false;
 }
 

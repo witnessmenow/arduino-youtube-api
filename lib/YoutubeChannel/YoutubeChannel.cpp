@@ -36,8 +36,15 @@ void YoutubeChannel::freeChannelStats(){
 }
 
 
+bool YoutubeChannel::checkChannelIdSet(){ return channelIdSet; }
+
+bool YoutubeChannel::checkChannelStatsSet(){return channelStatsSet;}
+
 void YoutubeChannel::resetInfo(){
     freeChannelStats();
+
+    strncpy(channelId, "", YT_CHANNELID_LEN + 1);
+    channelIdSet = false;
 }
 
 YoutubeChannel::~YoutubeChannel(){

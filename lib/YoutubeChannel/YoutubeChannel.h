@@ -5,7 +5,7 @@
 class YoutubeChannel{
 
     public:
-        YoutubeChannel();
+        YoutubeChannel(YoutubeApi *newApiObj): YoutubeChannel(NULL, newApiObj){};
         YoutubeChannel(const char *newChannelId, YoutubeApi *newApiObj);
         YoutubeChannel(String& newChannelId, YoutubeApi *newApiObj): YoutubeChannel(newChannelId.c_str(), newApiObj) {};
 
@@ -13,6 +13,7 @@ class YoutubeChannel{
 
         channelStatistics *channelStats = NULL;
         bool checkChannelStatsSet();
+        bool checkChannelIdSet();
         YoutubeApi* getYoututbeApiObj();
         const char *getChannelId();
         void resetInfo();

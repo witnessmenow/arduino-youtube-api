@@ -30,11 +30,11 @@ enum operation{
 // not implemented data fields are commented
 
 struct channelStatistics {
-	long viewCount;
-	long commentCount;  /* DEPRECATED */
-	long subscriberCount;
+	uint64_t viewCount;
+//	long commentCount;  /* DEPRECATED */
+	uint64_t subscriberCount;
 	bool hiddenSubscriberCount;
-	long videoCount;
+	uint32_t videoCount;
 };
 
 

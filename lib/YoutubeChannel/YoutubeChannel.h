@@ -18,6 +18,8 @@ class YoutubeChannel{
         const char *getChannelId();
         void resetInfo();
 
+        bool getChannelStatistics();
+
     private:
 
         char channelId[YT_CHANNELID_LEN + 1] = "";
@@ -28,4 +30,5 @@ class YoutubeChannel{
 
         void freeChannelStats();
         void setChannelId(const char *newChannelId);
+        bool parseChannelStatistics();
 };

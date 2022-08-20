@@ -85,113 +85,6 @@ int YoutubeApi::sendGetToYoutube(const String& command) {
 	return sendGetToYoutube(command.c_str());
 }
 
-
-/**
- * @brief Parses the channel statistics from caller client. Stores information in calling object.
- * 
- * @return true on success, false on error 
- */
-bool YoutubeApi::parseChannelStatistics() {
-	
-	bool wasSuccessful = false;
-
-	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = JSON_ARRAY_SIZE(1) 
-	                        + JSON_OBJECT_SIZE(2) 
-	                        + 2*JSON_OBJECT_SIZE(4) 
-	                        + JSON_OBJECT_SIZE(5)
-	                        + 330;
-	DynamicJsonDocument doc(bufferSize);
-
-	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, client);
-	if (!error){
-		JsonObject itemStatistics = doc["items"][0]["statistics"];
-
-		channelStats.viewCount = itemStatistics["viewCount"].as<long>();
-		channelStats.subscriberCount = itemStatistics["subscriberCount"].as<long>();
-		channelStats.commentCount = itemStatistics["commentCount"].as<long>();
-		channelStats.hiddenSubscriberCount = itemStatistics["hiddenSubscriberCount"].as<bool>();
-		channelStats.videoCount = itemStatistics["videoCount"].as<long>();
-
-		wasSuccessful = true;
-	}
-	else{
-		Serial.print(F("deserializeJson() failed with code "));
-		Serial.println(error.c_str());
-	}
-
-	closeClient();
-	return wasSuccessful;
-}
-
-
-/**
- * @brief Makes an API request for a specific endpoint and type. Calls a parsing function
- * to handle parsing.
- * 
- * @param op API request type to make
- * @param id video or channel id
- * @return Returns parsing function return value, or false in case of an unexpected HTTP status code.
- */
-bool YoutubeApi::getRequestedType(int op, const char *id) {
-
-	char command[150];
-	bool wasSuccessful = false;
-	int httpStatus;
-
-	switch (op)
-	{
-	case videoListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey);	
-		break;
-	
-	case videoListContentDetails:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey);
-		break;
-	
-	case videoListSnippet:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey);
-		break;
-
-	case videoListStatus:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "status", id, apiKey);
-		break;
-
-	case channelListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey);
-		break;
-	
-	default:
-		Serial.println("Unknown operation");
-		return false;
-	}
-	
-	if (_debug){
-		Serial.println(command);
-	}
-
-	httpStatus = sendGetToYoutube(command);
-
-	if (httpStatus == 200)
-	{
-		switch(op)
-		{
-			case channelListStats:
-				wasSuccessful = parseChannelStatistics();
-				break;
-				
-			default:
-				wasSuccessful = false;
-				break;
-		}
-	} else {
-		Serial.print("Unexpected HTTP Status Code: ");
-		Serial.println(httpStatus);
-	}
-	return wasSuccessful;
-}
-
 bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
 
 	switch (mode)
@@ -224,22 +117,6 @@ bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
 	return true;	
 }
 
-
-
-/**
- * @brief Gets the statistics of a specific channel. Stores them in the calling object.
- * 
- * @param channelId channelID of the channel to get the information from
- * @return true, if there were no errors and the channel was found
- */
-bool YoutubeApi::getChannelStatistics(const String& channelId) {
-	return getRequestedType(channelListStats, channelId.c_str());
-}
-
-
-bool YoutubeApi::getChannelStatistics(const char *channelId) {
-	return getRequestedType(channelListStats, channelId);
-}
 
 /**
  * @brief Parses the ISO8601 duration string into a tm time struct.

@@ -8,7 +8,11 @@ YoutubeChannel::YoutubeChannel(const char *newChannelId, YoutubeApi *newApiObj){
     setChannelId(newChannelId);
 }
 
-
+/**
+ * @brief Private function to set the channel id.
+ * 
+ * @param newChannelId new channel id o set
+ */
 void YoutubeChannel::setChannelId(const char *newChannelId){
 
     if(!newChannelId || strlen(newChannelId) != YT_CHANNELID_LEN){
@@ -20,15 +24,28 @@ void YoutubeChannel::setChannelId(const char *newChannelId){
     channelIdSet = true;
 }
 
-
+/**
+ * @brief Returns the stored channel id.
+ * 
+ * @return const char* currently stored channel id. If none is stored, returns an empty string
+ */
 const char* YoutubeChannel::getChannelId(){
     return channelId;
 }
 
+/**
+ * @brief Returns the current YoutubeApi object used to fetch requests.
+ * 
+ * @return YoutubeApi* pointer to currrent YoutubeApi object
+ */
 YoutubeApi* YoutubeChannel::getYoututbeApiObj(){
     return apiObj;
 }
 
+/**
+ * @brief Deletes channel statistics and resets the flag.
+ * 
+ */
 void YoutubeChannel::freeChannelStats(){
     if(channelStatsSet && channelStats){
         free(channelStats);
@@ -38,10 +55,24 @@ void YoutubeChannel::freeChannelStats(){
 }
 
 
+/**
+ * @brief Returns the flag indicating if channel id is currently set (and valid).
+ * 
+ * @return boolean value of the flag
+ */
 bool YoutubeChannel::checkChannelIdSet(){ return channelIdSet; }
 
+/**
+ * @brief Returns the flag indicating if channel statistics object is currently set (and valid).
+ * 
+ * @return boolean value of the flag
+ */
 bool YoutubeChannel::checkChannelStatsSet(){return channelStatsSet;}
 
+/**
+ * @brief Resets all information of the YoutubeChannel object, except the YoutubeApi object.
+ * 
+ */
 void YoutubeChannel::resetInfo(){
     freeChannelStats();
 
@@ -53,6 +84,11 @@ YoutubeChannel::~YoutubeChannel(){
     resetInfo();
 }
 
+/**
+ * @brief Fetches channel statistics of the set channel id.
+ * 
+ * @return true on success, otherwise false
+ */
 bool YoutubeChannel::getChannelStatistics(){
     if(channelStatsSet){
         freeChannelStats();

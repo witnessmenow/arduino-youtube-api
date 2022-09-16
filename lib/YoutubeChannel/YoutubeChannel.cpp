@@ -70,11 +70,19 @@ bool YoutubeChannel::checkChannelIdSet(){ return channelIdSet; }
 bool YoutubeChannel::checkChannelStatsSet(){return channelStatsSet;}
 
 /**
+ * @brief Returns the flag indicating if channel snippet object is currently set (and valid).
+ * 
+ * @return boolean value of the flag
+ */
+bool YoutubeChannel::checkChannelSnipSet(){return channelSnipSet;};
+
+/**
  * @brief Resets all information of the YoutubeChannel object, except the YoutubeApi object.
  * 
  */
 void YoutubeChannel::resetInfo(){
     freeChannelStats();
+    freeChannelSnippet();
 
     strncpy(channelId, "", YT_CHANNELID_LEN + 1);
     channelIdSet = false;
@@ -149,3 +157,98 @@ bool YoutubeChannel::parseChannelStatistics() {
 	apiObj->closeClient();
 	return wasSuccessful;
 }
+
+
+
+/**
+ * @brief Fetches channel statistics of the set channel id.
+ * 
+ * @return true on success, otherwise false
+ */
+bool YoutubeChannel::getChannelSnippet(){
+    if(channelSnipSet){
+        freeChannelSnippet();
+    }
+
+    char command[150];
+    YoutubeApi::createRequestString(channelListSnippet, command, channelId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parseChannelSnippet();
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Parses the channel statistics from caller client. Stores information in calling object.
+ * 
+ * @return true on success, false on error 
+ */
+bool YoutubeChannel::parseChannelSnippet() {
+	
+	bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 2000;
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client);
+	if (!error){
+
+        channelSnippet *newChannelSnippet = (channelSnippet*) malloc(sizeof(channelSnippet));
+
+		JsonObject itemSnippet = doc["items"][0]["snippet"];
+
+        uint8_t errorCode = 0;
+
+        errorCode += YoutubeApi::allocAndCopy(&newChannelSnippet->title, itemSnippet["title"].as<const char*>());
+        errorCode += YoutubeApi::allocAndCopy(&newChannelSnippet->description, itemSnippet["description"].as<const char*>());
+        errorCode += YoutubeApi::allocAndCopy(&newChannelSnippet->country, itemSnippet["country"].as<const char*>());
+        
+        newChannelSnippet->publishedAt = YoutubeApi::parseUploadDate(itemSnippet["publishedAt"].as<const char*>());
+
+        if(errorCode){
+            Serial.print("Error code: ");
+            Serial.print(errorCode);
+        }
+
+        channelSnip = newChannelSnippet;
+        channelSnipSet = true;
+
+		wasSuccessful = true;
+	}
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+
+	apiObj->closeClient();
+	return wasSuccessful;
+}
+
+
+/**
+ * @brief Frees the channel snippet struct of the object.
+ * 
+ */
+void YoutubeChannel::freeChannelSnippet(){
+
+    if(!channelSnip){
+        channelSnipSet = false;
+        return;
+    }
+
+    free(channelSnip->title);
+    free(channelSnip->description);
+    free(channelSnip->country);
+
+    free(channelSnip);
+
+    channelSnip = NULL;
+    channelSnipSet = false;
+}
+

@@ -108,6 +108,10 @@ bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
 	case channelListStats:
 		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey);
 		break;
+
+	case channelListSnippet:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "snippet", id, apiKey);
+		break;
 	
 	default:
 		Serial.println("Unknown operation");
@@ -320,6 +324,7 @@ int YoutubeApi::getHttpStatusCode() {
 
 void YoutubeApi::closeClient() {
 	if(client.connected()) {
+		client.flush();
 		client.stop();
 	}
 }

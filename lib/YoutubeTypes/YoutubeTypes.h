@@ -23,7 +23,8 @@ enum operation{
 	videoListSnippet,
 	videoListStatus,
 
-	channelListStats
+	channelListStats,
+	channelListSnippet
 };
 
 
@@ -37,6 +38,14 @@ struct channelStatistics {
 	uint32_t videoCount;
 };
 
+struct channelSnippet {
+	char *title;
+	char *description;
+	// char *customUrl;
+	tm publishedAt;
+	//char **thumbnails;
+	char *country;
+};
 
 struct videoContentDetails{
 	tm duration;

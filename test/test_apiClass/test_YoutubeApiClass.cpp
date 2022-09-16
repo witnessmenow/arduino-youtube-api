@@ -65,6 +65,19 @@ void test_createRequestString_channelStatistics_simple(){
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!");    
 }
 
+void test_createRequestString_channelSnippet_simple(){
+    WiFiClientSecure client;
+    YoutubeApi uut(API_KEY, client);
+
+    char uutCommand[150];
+    char expectedRes[150];
+    sprintf(expectedRes, "/youtube/v3/channels?part=snippet&id=%s&key=%s", TEST_CHANNEL_ID, API_KEY);
+    YoutubeApi::createRequestString(channelListSnippet, uutCommand, TEST_CHANNEL_ID);
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!");    
+}
+
+
 
 void test_allocAndCopy_pos_NULL(){
 
@@ -115,6 +128,7 @@ void setup()
     RUN_TEST(test_createRequestString_videoSnip_length40);
 
     RUN_TEST(test_createRequestString_channelStatistics_simple);
+    RUN_TEST(test_createRequestString_channelSnippet_simple);
 
     RUN_TEST(test_allocAndCopy_pos_NULL);
     RUN_TEST(test_allocAndCopy_data_NULL);

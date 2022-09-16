@@ -125,6 +125,25 @@ void test_getChannelStatistics_simple_reset(){
 
 }
 
+void test_getChannelSnippet_simple(){
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
+
+    client.setInsecure();
+
+    bool ret = uut.getChannelSnippet();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Expected to receive valid response!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkChannelSnipSet(), "Expected the channel statistics flag to be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.channelSnip, "Expected a channelSnip to be set!");
+}
+
 
 
 void setup(){
@@ -143,6 +162,8 @@ void setup(){
 
     RUN_TEST(test_getChannelStatistics_simple);
     RUN_TEST(test_getChannelStatistics_simple_reset);
+
+    RUN_TEST(test_getChannelSnippet_simple);
 
     UNITY_END();
 }

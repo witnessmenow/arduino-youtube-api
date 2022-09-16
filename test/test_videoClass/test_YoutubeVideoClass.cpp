@@ -144,6 +144,7 @@ bool establishInternetConnection(){
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     for(int tryWIFI = 1; tryWIFI < MAX_WIFI_RETRIES; tryWIFI++){
+        
         if(WiFi.status() == WL_CONNECTED){
             return true;
         }

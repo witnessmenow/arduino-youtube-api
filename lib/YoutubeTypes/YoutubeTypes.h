@@ -47,6 +47,12 @@ struct channelSnippet {
 	char *country;
 };
 
+struct channelContentDetails{
+
+	char* relatedPlaylistsLikes;
+	char* relatedPlaylistsUploads;
+};
+
 struct videoContentDetails{
 	tm duration;
 	char dimension[3];

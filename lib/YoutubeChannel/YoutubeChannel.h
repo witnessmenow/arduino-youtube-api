@@ -13,10 +13,12 @@ class YoutubeChannel{
 
         channelStatistics *channelStats = NULL;
         channelSnippet *channelSnip = NULL;
+        channelContentDetails *channelContentDets = NULL;
 
         bool checkChannelStatsSet();
         bool checkChannelSnipSet();
         bool checkChannelIdSet();
+        bool checkChannelContentDetailsSet();
 
         YoutubeApi* getYoututbeApiObj();
         const char *getChannelId();
@@ -33,9 +35,12 @@ class YoutubeChannel{
         bool channelIdSet = false;
         bool channelStatsSet = false;
         bool channelSnipSet = false;
+        bool channelContentDetailsSet = false;
 
         void freeChannelStats();
         void freeChannelSnippet();
+        void freeChannelContentDetails();
+
         void setChannelId(const char *newChannelId);
 
         bool parseChannelStatistics();

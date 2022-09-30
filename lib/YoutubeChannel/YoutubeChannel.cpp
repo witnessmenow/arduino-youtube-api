@@ -54,6 +54,23 @@ void YoutubeChannel::freeChannelStats(){
     }
 }
 
+/**
+ * @brief Frees channelContentDetails struct of object.
+ * 
+ */
+void YoutubeChannel::freeChannelContentDetails(){
+    if(!channelContentDetailsSet){
+        return;
+    }
+
+    free(channelContentDets->relatedPlaylistsLikes);
+    free(channelContentDets->relatedPlaylistsUploads);
+    free(channelContentDets);
+
+    channelContentDets = NULL;
+    channelContentDetailsSet = false;
+}
+
 
 /**
  * @brief Returns the flag indicating if channel id is currently set (and valid).

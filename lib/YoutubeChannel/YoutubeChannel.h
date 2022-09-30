@@ -26,6 +26,7 @@ class YoutubeChannel{
 
         bool getChannelStatistics();
         bool getChannelSnippet();
+        bool getChannelContentDetails();
 
     private:
 
@@ -45,4 +46,5 @@ class YoutubeChannel{
 
         bool parseChannelStatistics();
         bool parseChannelSnippet();
+        bool parseChannelContentDetails();
 };

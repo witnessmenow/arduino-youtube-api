@@ -144,6 +144,29 @@ void test_getChannelSnippet_simple(){
     TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.channelSnip, "Expected a channelSnip to be set!");
 }
 
+void test_getChannelContentDetails_simple(){
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure client;
+    YoutubeApi apiObj(API_KEY, client);
+    YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
+
+    client.setInsecure();
+
+    bool ret = uut.getChannelContentDetails();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Expected to receive valid response!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkChannelContentDetailsSet(), "Expected the channel contentDetails flag to be set!");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.channelContentDets, "Expected a contentDetails to be set!");
+
+    // checking for valid strings (not NULL)
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.channelContentDets->relatedPlaylistsLikes, "Expected a valid string");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(NULL, uut.channelContentDets->relatedPlaylistsUploads, "Expected a valid string");
+}
+
 
 
 void setup(){
@@ -164,6 +187,8 @@ void setup(){
     RUN_TEST(test_getChannelStatistics_simple_reset);
 
     RUN_TEST(test_getChannelSnippet_simple);
+
+    RUN_TEST(test_getChannelContentDetails_simple);
 
     UNITY_END();
 }

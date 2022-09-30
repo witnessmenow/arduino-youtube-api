@@ -93,6 +93,14 @@ bool YoutubeChannel::checkChannelStatsSet(){return channelStatsSet;}
  */
 bool YoutubeChannel::checkChannelSnipSet(){return channelSnipSet;};
 
+
+/**
+ * @brief Returns the flag indicating if channel content details object is currently set (and valid).
+ * 
+ * @return boolean value of the flag
+ */
+bool YoutubeChannel::checkChannelContentDetailsSet(){return channelContentDetailsSet;}
+
 /**
  * @brief Resets all information of the YoutubeChannel object, except the YoutubeApi object.
  * 
@@ -100,6 +108,7 @@ bool YoutubeChannel::checkChannelSnipSet(){return channelSnipSet;};
 void YoutubeChannel::resetInfo(){
     freeChannelStats();
     freeChannelSnippet();
+    freeChannelContentDetails();
 
     strncpy(channelId, "", YT_CHANNELID_LEN + 1);
     channelIdSet = false;
@@ -267,5 +276,66 @@ void YoutubeChannel::freeChannelSnippet(){
 
     channelSnip = NULL;
     channelSnipSet = false;
+}
+
+/**
+ * @brief  Fetches channel contentDetails of the set channel id.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubeChannel::getChannelContentDetails(){
+    if(channelContentDetailsSet){
+        freeChannelContentDetails();
+    }
+
+    char command[150];
+    YoutubeApi::createRequestString(channelListContentDetails, command, channelId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parseChannelContentDetails();
+    }
+
+    return false;
+}
+
+bool YoutubeChannel::parseChannelContentDetails(){
+
+    bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 600;
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client);
+	if (!error){
+
+        channelContentDetails *newChannelContentDetails = (channelContentDetails*) malloc(sizeof(channelContentDetails));
+
+		JsonObject itemContentDetails = doc["items"][0]["contentDetails"]["relatedPlaylists"];
+
+        uint8_t errorCode = 0;
+
+        errorCode += YoutubeApi::allocAndCopy(&newChannelContentDetails->relatedPlaylistsLikes, itemContentDetails["likes"].as<const char*>());
+        errorCode += YoutubeApi::allocAndCopy(&newChannelContentDetails->relatedPlaylistsUploads, itemContentDetails["uploads"].as<const char*>());
+    
+        if(errorCode){
+            Serial.print("Error code: ");
+            Serial.print(errorCode);
+        }
+
+        channelContentDets = newChannelContentDetails;
+        channelContentDetailsSet = true;
+
+		wasSuccessful = true;
+	}
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+
+	apiObj->closeClient();
+	return wasSuccessful;
 }
 

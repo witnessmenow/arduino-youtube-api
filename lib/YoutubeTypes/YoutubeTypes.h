@@ -24,7 +24,8 @@ enum operation{
 	videoListStatus,
 
 	channelListStats,
-	channelListSnippet
+	channelListSnippet,
+	channelListContentDetails
 };
 
 

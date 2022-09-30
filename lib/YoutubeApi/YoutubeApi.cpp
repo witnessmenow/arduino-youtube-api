@@ -113,6 +113,10 @@ bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
 		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "snippet", id, apiKey);
 		break;
 	
+	case channelListContentDetails:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "contentDetails", id, apiKey);
+		break;
+	
 	default:
 		Serial.println("Unknown operation");
 		return false;

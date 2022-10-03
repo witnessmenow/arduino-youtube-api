@@ -338,4 +338,3 @@ bool YoutubeChannel::parseChannelContentDetails(){
 	apiObj->closeClient();
 	return wasSuccessful;
 }
-

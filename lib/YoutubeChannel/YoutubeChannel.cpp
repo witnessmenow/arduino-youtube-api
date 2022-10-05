@@ -161,6 +161,12 @@ bool YoutubeChannel::parseChannelStatistics() {
 	DeserializationError error = deserializeJson(doc, apiObj->client);
 	if (!error){
 
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find channel id!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
         channelStatistics *newChannelStats = (channelStatistics*) malloc(sizeof(channelStatistics));
 
 		JsonObject itemStatistics = doc["items"][0]["statistics"];
@@ -225,6 +231,12 @@ bool YoutubeChannel::parseChannelSnippet() {
 	DeserializationError error = deserializeJson(doc, apiObj->client);
 	if (!error){
 
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find channel id!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
         channelSnippet *newChannelSnippet = (channelSnippet*) malloc(sizeof(channelSnippet));
 
 		JsonObject itemSnippet = doc["items"][0]["snippet"];
@@ -240,12 +252,13 @@ bool YoutubeChannel::parseChannelSnippet() {
         if(errorCode){
             Serial.print("Error code: ");
             Serial.print(errorCode);
-        }
+        }else{
+            channelSnip = newChannelSnippet;
+            channelSnipSet = true;
 
-        channelSnip = newChannelSnippet;
-        channelSnipSet = true;
-
-		wasSuccessful = true;
+		    wasSuccessful = true;
+	    }
+        
 	}
 	else{
 		Serial.print(F("deserializeJson() failed with code "));
@@ -311,6 +324,12 @@ bool YoutubeChannel::parseChannelContentDetails(){
 	DeserializationError error = deserializeJson(doc, apiObj->client);
 	if (!error){
 
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find channel id!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
         channelContentDetails *newChannelContentDetails = (channelContentDetails*) malloc(sizeof(channelContentDetails));
 
 		JsonObject itemContentDetails = doc["items"][0]["contentDetails"]["relatedPlaylists"];
@@ -323,13 +342,13 @@ bool YoutubeChannel::parseChannelContentDetails(){
         if(errorCode){
             Serial.print("Error code: ");
             Serial.print(errorCode);
+        }else{
+            channelContentDets = newChannelContentDetails;
+            channelContentDetailsSet = true;
+
+		    wasSuccessful = true;
         }
-
-        channelContentDets = newChannelContentDetails;
-        channelContentDetailsSet = true;
-
-		wasSuccessful = true;
-	}
+    }
 	else{
 		Serial.print(F("deserializeJson() failed with code "));
 		Serial.println(error.c_str());

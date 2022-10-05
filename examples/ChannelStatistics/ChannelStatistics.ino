@@ -38,7 +38,8 @@
 // Library for connecting to the YouTube API
 // https://github.com/witnessmenow/arduino-youtube-api
 // (search for "youtube" in the Arduino Library Manager)
-#include <YoutubeApi.h>
+#include "YoutubeApi.h"
+#include "YoutubeChannel.h"
 
 // Library used for parsing Json from the API responses
 // https://github.com/bblanchon/ArduinoJson
@@ -52,14 +53,64 @@ const char password[] = "yyyy";  // your network key
 #define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA" // part of the channel url
 //------- ---------------------- ------
 
+#define channelIdLen 24
+
+#define timeBetweenRequestGroup 120 * 1000  // 120 seconds, in milliseconds 	| time between all requests
+#define timeBetweenRequests 2 * 1000       // 2 seconds, in milliseconds    	| time between single requests
+
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
-unsigned long timeBetweenRequests = 60 * 1000;  // 60 seconds, in milliseconds
+char videoId[channelIdLen + 1];
+unsigned long startTime;
+
+/**
+ * @brief Tries to read the videoId from Serial.
+ * 
+ * @return 1 on success, 0 if no data available
+ */
+int readVideoId(){
+
+	if(Serial.available() > channelIdLen - 1){
+
+			for(int i = 0; i < channelIdLen; i++){
+
+				videoId[i] = Serial.read();
+			}
+
+			videoId[channelIdLen] = '\0';
+			return 1;
+	}
+	return 0;
+}
+
+/**
+ * @brief Flushes the Serial input buffer.
+ * 
+ */
+void flushSerialBuffer(){
+	while(Serial.available()){
+		Serial.read();
+	}
+}
+
+/**
+ * @brief Prints "Yes\n" if x or "No\n" if not x 
+ * 
+ * @param x parameter
+ */
+void printYesNo(bool x){
+	if(x){
+		Serial.println("Yes");
+	}else{
+		Serial.println("No");
+	}
+}
+
 
 void setup() {
 	Serial.begin(115200);
-
+	
 	// Set WiFi to 'station' mode and disconnect
 	// from the AP if it was previously connected
 	WiFi.mode(WIFI_STA);
@@ -83,29 +134,115 @@ void setup() {
 	// Required if you are using ESP8266 V2.5 or above
 	client.setInsecure();
 	#endif
-
+		
+	client.setInsecure();
+	
 	// Uncomment for extra debugging info
 	// api._debug = true;
+
+	flushSerialBuffer();
+	Serial.print("Enter channelId: ");
+
+	while(1){
+		if(readVideoId()){
+			flushSerialBuffer();
+			break;
+		}
+	}
+
+	Serial.println(videoId);
 }
 
 void loop() {
-	if(api.getChannelStatistics(CHANNEL_ID)) {
-		Serial.println("\n---------Stats---------");
 
-		Serial.print("Subscriber Count: ");
-		Serial.println(api.channelStats.subscriberCount);
+	Serial.setTimeout(timeBetweenRequestGroup);
 
-		Serial.print("View Count: ");
-		Serial.println(api.channelStats.viewCount);
+	YoutubeChannel channel(videoId, &api);
 
-		Serial.print("Video Count: ");
-		Serial.println(api.channelStats.videoCount);
+	// fetch and print information in channel.list:snippet
+	if(channel.getChannelSnippet()){
+		Serial.println("\n\nsnippet");
 
-		// Probably not needed :)
-		//Serial.print("hiddenSubscriberCount: ");
-		//Serial.println(api.channelStats.hiddenSubscriberCount);
+		channelSnippet *fetchedSnip = channel.channelSnip;
 
-		Serial.println("------------------------");
+
+		Serial.print("|----- Channel title: ");
+		Serial.println(fetchedSnip->title);
+
+		Serial.print("|----- Channel description: ");
+		Serial.println(fetchedSnip->description);
+
+		Serial.print("|----- Channel country: ");
+		Serial.println(fetchedSnip->country);
+
+		tm channelCreation = fetchedSnip->publishedAt;
+
+		Serial.print("|----- Channel creation (d.m.y h:m:s): ");
+		Serial.print(channelCreation.tm_mday);
+        Serial.print(".");
+        Serial.print(channelCreation.tm_mon);
+        Serial.print(".");
+        Serial.print(channelCreation.tm_year + 1900);
+        Serial.print(" ");
+        Serial.print(channelCreation.tm_hour);
+        Serial.print(":");
+        Serial.print(channelCreation.tm_min);
+        Serial.print(":");
+        Serial.println(channelCreation.tm_sec);
+
+		Serial.println("-------------------------------------------------");
 	}
+
+	if(channel.getChannelStatistics()){
+		Serial.println("\n\nstatistics");
+
+		channelStatistics *fetchedStats = channel.channelStats;
+
+		Serial.print("|----- Channel views: ");
+		Serial.println(fetchedStats->viewCount);
+
+		Serial.print("|----- Channel subscriber count hidden? ");
+		printYesNo(fetchedStats->hiddenSubscriberCount);
+
+		Serial.print("|----- Channel subscribers: ");
+		Serial.println(fetchedStats->subscriberCount);
+
+		Serial.print("|----- Channel video count: ");
+		Serial.println(fetchedStats->videoCount);
+
+		Serial.println("-------------------------------------------------");
+	}
+
 	delay(timeBetweenRequests);
+
+	// fetch and print information in channel.list:contentDetails
+	if(channel.getChannelContentDetails()){
+		Serial.println("\n\ncontent details");
+
+		channelContentDetails *fetchedDetails = channel.channelContentDets;
+
+		Serial.print("|----- Liked videos playlist id: ");
+		Serial.println(fetchedDetails->relatedPlaylistsLikes);
+
+		Serial.print("|----- Uploaded videos playlist id: ");
+		Serial.println(fetchedDetails->relatedPlaylistsUploads);
+
+		Serial.println("-------------------------------------------------");
+	}
+
+	Serial.print("\nRefreshing in ");
+	Serial.print(timeBetweenRequestGroup / 1000.0);
+	Serial.println(" seconds...");
+	Serial.print("Or set a new channelId: ");
+
+	startTime = millis();
+	flushSerialBuffer();
+
+	while(millis() - startTime < timeBetweenRequestGroup){
+
+		if(readVideoId()){;
+			Serial.println(videoId);
+			break;
+		}
+	}	
 }

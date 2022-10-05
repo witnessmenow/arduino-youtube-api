@@ -30,7 +30,6 @@
 // add	custom error types
 
 #include "YoutubeApi.h"
-#include <WiFiClientSecure.h>
 
 char YoutubeApi::apiKey[YTAPI_KEY_LEN + 1] = "";
 
@@ -323,6 +322,15 @@ int YoutubeApi::getHttpStatusCode() {
 	} 
 
 	return -1;
+}
+
+bool YoutubeApi::checkEmptyResponse(DynamicJsonDocument response){
+
+	if(response["pageInfo"]["totalResults"].as<int>() == 0){
+		return true;
+	}
+
+	return false;
 }
 
 

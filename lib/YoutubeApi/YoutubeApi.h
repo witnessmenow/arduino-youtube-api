@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include "YoutubeTypes.h"
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include <Client.h>
 
 class YoutubeApi
@@ -46,6 +47,7 @@ class YoutubeApi
 		static int allocAndCopy(char **pos, const char *data);
 		static tm parseUploadDate(const char *dateTime);
 		static tm parseDuration(const char *duration);
+		static bool checkEmptyResponse(DynamicJsonDocument response);
 		
 		bool _debug = false;
 		Client &client;

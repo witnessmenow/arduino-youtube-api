@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include "YoutubeTypes.h"
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include <Client.h>
 
 class YoutubeApi
@@ -43,14 +44,10 @@ class YoutubeApi
 		int sendGetToYoutube(const char *command);
 		int sendGetToYoutube(const String& command);
 
-		bool getChannelStatistics(const String& channelId);
-		bool getChannelStatistics(const char *channelId);
-
 		static int allocAndCopy(char **pos, const char *data);
 		static tm parseUploadDate(const char *dateTime);
 		static tm parseDuration(const char *duration);
-
-		channelStatistics channelStats;
+		static bool checkEmptyResponse(DynamicJsonDocument response);
 		
 		bool _debug = false;
 		Client &client;
@@ -59,10 +56,7 @@ class YoutubeApi
 
 	private:
 		static char apiKey[YTAPI_KEY_LEN + 1];
-		bool getRequestedType(int op, const char *channelId);
 		int getHttpStatusCode();
-
-		bool parseChannelStatistics();
 
 		void skipHeaders();
 };

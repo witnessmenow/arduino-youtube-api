@@ -5,6 +5,8 @@
 #include <inttypes.h>
 
 #define YT_VIDEOID_LEN 11
+#define YT_CHANNELID_LEN 24
+
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
 #define YTAPI_TIMEOUT 1500
@@ -21,20 +23,36 @@ enum operation{
 	videoListSnippet,
 	videoListStatus,
 
-	channelListStats
+	channelListStats,
+	channelListSnippet,
+	channelListContentDetails
 };
 
 
 // not implemented data fields are commented
 
 struct channelStatistics {
-	long viewCount;
-	long commentCount;  /* DEPRECATED */
-	long subscriberCount;
+	uint64_t viewCount;
+//	long commentCount;  /* DEPRECATED */
+	uint64_t subscriberCount;
 	bool hiddenSubscriberCount;
-	long videoCount;
+	uint32_t videoCount;
 };
 
+struct channelSnippet {
+	char *title;
+	char *description;
+	// char *customUrl;
+	tm publishedAt;
+	//char **thumbnails;
+	char *country;
+};
+
+struct channelContentDetails{
+
+	char* relatedPlaylistsLikes;
+	char* relatedPlaylistsUploads;
+};
 
 struct videoContentDetails{
 	tm duration;

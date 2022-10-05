@@ -1,5 +1,5 @@
 /*******************************************************************
-	Read YouTube Channel statistics from the YouTube API
+	Read YouTube Channel information from the YouTube API
 	and print them to the serial monitor
 
 	Compatible Boards:

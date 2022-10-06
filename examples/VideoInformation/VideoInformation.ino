@@ -38,7 +38,6 @@
 // Library for connecting to the YouTube API
 // https://github.com/witnessmenow/arduino-youtube-api
 // (search for "youtube" in the Arduino Library Manager)
-#include "YoutubeApi.h"
 #include "YoutubeVideo.h"
 
 // Library used for parsing Json from the API responses

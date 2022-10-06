@@ -1,9 +1,9 @@
 # Arduino YouTube API Library
-[![arduino-library-badge](https://www.ardu-badge.com/badge/YoutubeApi.svg?)](https://www.ardu-badge.com/YoutubeApi) [![Build Status](https://travis-ci.org/witnessmenow/arduino-youtube-api.svg?branch=master)](https://travis-ci.org/witnessmenow/arduino-youtube-api)
 
 A wrapper for the [YouTube API](https://developers.google.com/youtube/v3/docs/) for Arduino. Works on both ESP8266 and ESP32.
 
-![Imgur](http://i.imgur.com/FmXyW4E.png)
+![Imgur](https://imgur.com/JaZR9m9)
+![Imgur](https://imgur.com/a/Xrq55X2)
 
 ### Support what I do!
 
@@ -42,9 +42,11 @@ then once you're connected to WiFi you can start requesting data from the API:
 
     #define CHANNEL_ID "UCezJOfu7OtqGzd5xrP3q6WA"
 
-    if(api.getChannelStatistics(CHANNEL_ID)) {
+    YoutubeChannel channel(CHANNEL_ID, &api);
+
+    if(channel.getChannelStatistics()) {
         Serial.print("Subscriber Count: ");
-        Serial.println(api.channelStats.subscriberCount);
+        Serial.println(channel.channelStats->subscriberCount);
     }
 
 If you don't know it, you can find your own YouTube channel ID [here](https://www.youtube.com/account_advanced). See [the examples](examples) for more details on how to use the library.
@@ -54,8 +56,7 @@ If you don't know it, you can find your own YouTube channel ID [here](https://ww
 The library is currently able to fetch:
 
 - video list:   snippet, status, statistics and contentDetails
-- channel list: statistics
-
+- channel list: snippet, statistics and content details
 
 ## License
 

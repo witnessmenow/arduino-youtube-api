@@ -2,8 +2,13 @@
 
 A wrapper for the [YouTube API](https://developers.google.com/youtube/v3/docs/) for Arduino. Works on both ESP8266 and ESP32.
 
-![Imgur](https://imgur.com/JaZR9m9)
-![Imgur](https://imgur.com/a/Xrq55X2)
+### Example fetching channel information:
+
+![Imgur](https://i.imgur.com/JaZR9m9.png)
+
+### Example fetching video information:
+
+![Imgur](https://i.imgur.com/hTbtVvg.png)
 
 ### Support what I do!
 

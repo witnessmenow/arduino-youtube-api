@@ -84,36 +84,49 @@ int YoutubeApi::sendGetToYoutube(const String& command) {
 	return sendGetToYoutube(command.c_str());
 }
 
+
+/**
+ * @brief Creates a url-string to request data from.
+ * 
+ * @param mode The type of request to make a string for. (operation enum)
+ * @param command The destination of the string.
+ * @param id The id of the resource.
+ * @return true on success, false on error
+ */
 bool YoutubeApi::createRequestString(int mode, char* command, const char *id) {
 
 	switch (mode)
 	{
 	case videoListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "statistics", id, apiKey);	
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, YTAPI_PART_STATISTICS, id, apiKey);	
 		break;
 	
 	case videoListContentDetails:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "contentDetails", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, YTAPI_PART_CONTENTDETAILS, id, apiKey);
 		break;
 	
 	case videoListSnippet:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "snippet", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, YTAPI_PART_SNIPPET, id, apiKey);
 		break;
 
 	case videoListStatus:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, "status", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_VIDEO_ENDPOINT, YTAPI_PART_STATUS, id, apiKey);
 		break;
 
 	case channelListStats:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "statistics", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, YTAPI_PART_STATISTICS, id, apiKey);
 		break;
 
 	case channelListSnippet:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "snippet", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, YTAPI_PART_SNIPPET, id, apiKey);
 		break;
 	
 	case channelListContentDetails:
-		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, "contentDetails", id, apiKey);
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_CHANNEL_ENDPOINT, YTAPI_PART_CONTENTDETAILS, id, apiKey);
+		break;
+
+	case playlistListStatus:
+		sprintf(command, YTAPI_REQUEST_FORMAT, YTAPI_PLAYLIST_ENDPOINT, YTAPI_PART_STATUS, id, apiKey);
 		break;
 	
 	default:

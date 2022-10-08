@@ -14,7 +14,15 @@
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
+#define YTAPI_PLAYLIST_ENDPOINT "/youtube/v3/playlists"
+
 #define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
+
+#define YTAPI_PART_STATISTICS "statistics"
+#define YTAPI_PART_CONTENTDETAILS "contentDetails"
+#define YTAPI_PART_SNIPPET "snippet"
+#define YTAPI_PART_STATUS "status"
+
 #define YTAPI_KEY_LEN 45
 
 enum operation{
@@ -26,7 +34,9 @@ enum operation{
 
 	channelListStats,
 	channelListSnippet,
-	channelListContentDetails
+	channelListContentDetails,
+
+	playlistListStatus
 };
 
 

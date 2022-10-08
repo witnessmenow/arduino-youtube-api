@@ -6,6 +6,7 @@
 
 #define YT_VIDEOID_LEN 11
 #define YT_CHANNELID_LEN 24
+#define YT_PLAYLISTID_LEN 24
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
@@ -29,7 +30,28 @@ enum operation{
 };
 
 
-// not implemented data fields are commented
+// not implemented data fields are commented out
+
+struct playlistContentDetails{
+	uint32_t itemCount;
+};
+
+struct playlistSnippet{
+	tm publishedAt;
+	char *channelId;
+	char *title;
+	char *description;
+//	char **thumbnails;
+	char *channelTitle;
+	char *defaultLanguage;
+//	char **localized;
+
+};
+
+struct playlistStatus{
+	char *privacyStatus;
+};
+
 
 struct channelStatistics {
 	uint64_t viewCount;

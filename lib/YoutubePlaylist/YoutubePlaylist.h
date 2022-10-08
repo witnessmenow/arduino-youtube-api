@@ -15,7 +15,15 @@ class YoutubePlaylist{
         char playlistId[YT_PLAYLISTID_LEN + 1];
         YoutubeApi *apiObj;
 
-        playlistSnippet snip;
-        playlistContentDetails contentDets;
-        playlistStatus status;
+        playlistSnippet *snip = NULL;
+        playlistContentDetails *contentDets = NULL;
+        playlistStatus *status = NULL;
+
+        bool snipSet = false;
+        bool contentDetsSet = false;
+        bool statusSet = false;
+
+        void freePlaylistSnippet();
+        void freePlaylistContentDetails();
+        void freePlaylistStatus();
 };

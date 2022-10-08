@@ -6,7 +6,6 @@
 
 #define MAX_WIFI_RETRIES 10
 
-#define validChannelId "123456789012345678901234"
 #define tooLongChannelId "1234567890123456789012345"
 #define tooShortChannelId "12345678901234567890123"
 
@@ -54,9 +53,9 @@ void test_charConstructor_tooShortId(){
 void test_resetInfo(){
     WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
-    YoutubeChannel uut(validChannelId, &apiDummy);
+    YoutubeChannel uut(TEST_CHANNEL_ID, &apiDummy);
 
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(validChannelId, uut.getChannelId(), "Channel id not correct!");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(TEST_CHANNEL_ID, uut.getChannelId(), "Channel id not correct!");
 
     uut.resetInfo();
 

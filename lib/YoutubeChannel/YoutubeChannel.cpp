@@ -15,7 +15,9 @@ YoutubeChannel::YoutubeChannel(const char *newChannelId, YoutubeApi *newApiObj){
  */
 void YoutubeChannel::setChannelId(const char *newChannelId){
 
-    if(!newChannelId || strlen(newChannelId) != YT_CHANNELID_LEN){
+    // TODO:    When an invalid channel id is being rejected, it should block certain actions
+    //          like fetching data etc.
+    if(!newChannelId || strlen(newChannelId) != YT_CHANNELID_LEN || newChannelId[0] != 'U' || newChannelId[1] != 'C'){
         return;
     }
 

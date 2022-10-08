@@ -71,3 +71,35 @@ void YoutubePlaylist::freePlaylistStatus(){
     statusSet = false;
     status = NULL;
 }
+
+
+/**
+ * @brief Returns the value of the playlistStatusSet flag, indicating a valid object.
+ * 
+ * @return Value of flag.
+ */
+bool YoutubePlaylist::checkPlaylistStatusSet(){return statusSet;}
+
+
+/**
+ * @brief Returns the value of the playlistSnipSet flag, indicating a valid object.
+ * 
+ * @return Value of flag.
+ */
+bool YoutubePlaylist::checkPlaylistSnipSet(){return snipSet;}
+
+
+/**
+ * @brief Returns the value of the playlistContentDets flag, indicating a valid object.
+ * 
+ * @return Value of flag.
+ */
+bool YoutubePlaylist::checkPlaylistContentDetsSet(){return contentDetsSet;}
+
+
+/**
+ * @brief Returns the currently set playlist id.
+ * 
+ * @return const char* playlistId
+ */
+const char* YoutubePlaylist::getPlaylistId(){return playlistId;}

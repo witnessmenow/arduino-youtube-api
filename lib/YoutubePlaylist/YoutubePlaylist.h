@@ -9,15 +9,21 @@ class YoutubePlaylist{
         YoutubePlaylist(YoutubeApi *newApiObj, String& newPlaylistId): YoutubePlaylist(newApiObj, newPlaylistId.c_str()) {};
 
         ~YoutubePlaylist();
-    
-    private:
 
-        char playlistId[YT_PLAYLISTID_LEN + 1];
-        YoutubeApi *apiObj;
+        bool checkPlaylistStatusSet();
+        bool checkPlaylistSnipSet();
+        bool checkPlaylistContentDetsSet();
+
+        const char* getPlaylistId();
 
         playlistSnippet *snip = NULL;
         playlistContentDetails *contentDets = NULL;
         playlistStatus *status = NULL;
+        
+    private:
+
+        char playlistId[YT_PLAYLISTID_LEN + 1];
+        YoutubeApi *apiObj;
 
         bool snipSet = false;
         bool contentDetsSet = false;

@@ -16,6 +16,8 @@ class YoutubePlaylist{
 
         const char* getPlaylistId();
 
+        bool getPlaylistStatus();
+
         playlistSnippet *snip = NULL;
         playlistContentDetails *contentDets = NULL;
         playlistStatus *status = NULL;
@@ -32,4 +34,6 @@ class YoutubePlaylist{
         void freePlaylistSnippet();
         void freePlaylistContentDetails();
         void freePlaylistStatus();
+
+        bool parsePlaylistStatus();
 };

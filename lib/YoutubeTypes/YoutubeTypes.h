@@ -36,7 +36,8 @@ enum operation{
 	channelListSnippet,
 	channelListContentDetails,
 
-	playlistListStatus
+	playlistListStatus,
+	playlistListContentDetails
 };
 
 

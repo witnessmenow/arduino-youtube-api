@@ -45,6 +45,27 @@ void test_getPlaylistStatus_simple(){
     TEST_ASSERT_TRUE_MESSAGE(uut.checkPlaylistStatusSet(), "Expected the playlistStatus flag to be set!");
 }
 
+
+void test_getPlaylistContentDetails_simple(){
+
+     if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure dummyClient;
+    YoutubeApi dummyApi(API_KEY, dummyClient);
+
+    YoutubePlaylist uut(&dummyApi, TEST_PLAYLIST_ID);
+
+    dummyClient.setInsecure(); 
+
+    bool ret = uut.getPlaylistContentDetails();
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Expected to be able to get a playlist content details!");
+    TEST_ASSERT_NOT_NULL_MESSAGE(uut.contentDets, "Expected a valid playlistContentDetails object to be set!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkPlaylistContentDetsSet(), "Expected the playlistContentDetails flag to be set!");
+}
+
 bool establishInternetConnection(){
     WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
@@ -70,6 +91,7 @@ void setup(){
     RUN_TEST(test_constructDestruct_simple);
     establishInternetConnection();
     RUN_TEST(test_getPlaylistStatus_simple);
+    RUN_TEST(test_getPlaylistContentDetails_simple);
 
     UNITY_END();
 }

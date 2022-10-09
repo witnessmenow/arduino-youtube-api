@@ -171,3 +171,64 @@ bool YoutubePlaylist::parsePlaylistStatus(){
     apiObj->closeClient();
     return wasSuccessful;
 }
+
+
+/**
+ * @brief  Fetches playlist content details of the set playlist id.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::getPlaylistContentDetails(){
+
+    freePlaylistContentDetails();
+
+    char command[150];
+    YoutubeApi::createRequestString(playlistListContentDetails, command, playlistId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parsePlaylistContentDetails();
+    }
+
+    return false;
+}
+
+/**
+ * @brief Parses the response of the api request to retrieve the playlist content details.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::parsePlaylistContentDetails(){
+
+    bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 512; // recommended 384, but it throwed errors
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client);
+	if (!error){
+
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find playlistId!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
+        playlistContentDetails *newPlaylistContentDetails = (playlistContentDetails*) malloc(sizeof(playlistContentDetails));
+
+        newPlaylistContentDetails->itemCount = doc["items"][0]["contentDetails"]["itemCount"].as<uint32_t>();
+      
+        contentDets = newPlaylistContentDetails;
+        contentDetsSet = true;
+		wasSuccessful = true;
+    }
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+
+    apiObj->closeClient();
+    return wasSuccessful;
+}

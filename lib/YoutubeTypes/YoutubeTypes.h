@@ -7,6 +7,8 @@
 #define YT_VIDEOID_LEN 11
 #define YT_CHANNELID_LEN 24
 #define YT_PLAYLISTID_LEN 24
+#define YT_PLALIST_ITEMS_PAGE_TOKEN_LEN 14
+#define YT_PLAYLIST_ITEM_RESULTS_PER_PAGE 5
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
@@ -43,6 +45,22 @@ enum operation{
 
 
 // not implemented data fields are commented out
+
+struct playlistItemsConfiguration{
+	uint16_t totalResults;
+// 	uint8_t resultsPerPage; should be YT_PLAYLIST_ITEM_RESULTS_PER_PAGE 
+
+	uint16_t currentPage;
+	char currentPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+
+	char nextPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+	char previousPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+};
+
+struct playlistItemsContentDetails{
+	char videoId[YT_VIDEOID_LEN + 1] = "";
+	tm videoPublishedAt;
+};
 
 struct playlistContentDetails{
 	uint32_t itemCount;
@@ -102,7 +120,7 @@ struct videoContentDetails{
 
 
 struct videoStatistics {
-	uint64_t viewCount; // required for popular videos. (Baby Shark would else overflow xD)
+	uint64_t viewCount; // uint64_t required for popular videos. (Baby Shark would else overflow xD)
 	uint32_t commentCount;
 	uint32_t likeCount;
 //	long favourites;	

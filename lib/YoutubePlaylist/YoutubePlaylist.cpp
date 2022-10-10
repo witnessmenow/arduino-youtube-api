@@ -73,6 +73,22 @@ void YoutubePlaylist::freePlaylistStatus(){
 
 
 /**
+ * @brief Frees playlistItemsConfiguration struct of object and resets flag and pointer.
+ * 
+ */
+void YoutubePlaylist::freePlaylistItemsConfig(){
+
+    if(!itemsConfigSet){
+        return;
+    }
+
+    free(playlistItemsConfig);
+    itemsConfigSet = false;
+    playlistItemsConfig = NULL;
+}
+
+
+/**
  * @brief Returns the value of the playlistStatusSet flag, indicating a valid object.
  * 
  * @return Value of flag.

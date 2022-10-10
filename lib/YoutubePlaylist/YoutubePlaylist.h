@@ -18,6 +18,7 @@ class YoutubePlaylist{
 
         bool getPlaylistStatus();
         bool getPlaylistContentDetails();
+        bool getPlaylistSnippet();
 
         playlistSnippet *snip = NULL;
         playlistContentDetails *contentDets = NULL;
@@ -38,4 +39,5 @@ class YoutubePlaylist{
 
         bool parsePlaylistStatus();
         bool parsePlaylistContentDetails();
+        bool parsePlaylistSnippet();
 };

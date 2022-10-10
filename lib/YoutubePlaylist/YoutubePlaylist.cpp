@@ -31,7 +31,6 @@ void YoutubePlaylist::freePlaylistSnippet(){
     free(snip->title);
     free(snip->description);
     free(snip->channelTitle);
-    free(snip->defaultLanguage);
 
     free(snip);
     snipSet = false;
@@ -222,6 +221,80 @@ bool YoutubePlaylist::parsePlaylistContentDetails(){
       
         contentDets = newPlaylistContentDetails;
         contentDetsSet = true;
+		wasSuccessful = true;
+    }
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+
+    apiObj->closeClient();
+    return wasSuccessful;
+}
+
+
+
+/**
+ * @brief  Fetches playlist snippet of the set playlist id.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::getPlaylistSnippet(){
+
+    freePlaylistSnippet();
+
+    char command[150];
+    YoutubeApi::createRequestString(playlistListSnippet, command, playlistId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parsePlaylistSnippet();
+    }
+
+    return false;
+}
+
+/**
+ * @brief Parses the response of the api request to retrieve the playlist content details.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::parsePlaylistSnippet(){
+
+    bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 1600;     // is just enough for upload playlists. It might not work for user made playlists.
+                                        // 1600 Bytes is way too large. #TODO: implement filtering to reduce allocated space
+	DynamicJsonDocument doc(bufferSize);
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client);
+	if (!error){
+
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find playlistId!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
+        playlistSnippet *newPlaylistSnippet = (playlistSnippet*) malloc(sizeof(playlistSnippet));
+
+        uint8_t errorCode = 0;
+
+        errorCode += YoutubeApi::allocAndCopy(&newPlaylistSnippet->channelId, doc["items"][0]["snippet"]["channelId"].as<const char*>());
+        errorCode += YoutubeApi::allocAndCopy(&newPlaylistSnippet->title, doc["items"][0]["snippet"]["title"].as<const char*>());
+        errorCode += YoutubeApi::allocAndCopy(&newPlaylistSnippet->description, doc["items"][0]["snippet"]["description"].as<const char*>());
+
+        errorCode += YoutubeApi::allocAndCopy(&newPlaylistSnippet->channelTitle, doc["items"][0]["snippet"]["channelTitle"].as<const char*>());
+
+        char *ret = strncpy(newPlaylistSnippet->defaultLanguage, doc["items"][0]["snippet"]["defaultLanguage"].as<const char*>(), 3);
+        newPlaylistSnippet->defaultLanguage[3]  = '\0';
+
+        newPlaylistSnippet->publishedAt = YoutubeApi::parseUploadDate(doc["items"][0]["snippet"]["publishedAt"].as<const char*>());
+
+        snip = newPlaylistSnippet;
+        snipSet = true;
 		wasSuccessful = true;
     }
 	else{

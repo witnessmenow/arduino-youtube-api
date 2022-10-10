@@ -37,7 +37,8 @@ enum operation{
 	channelListContentDetails,
 
 	playlistListStatus,
-	playlistListContentDetails
+	playlistListContentDetails,
+	playlistListSnippet
 };
 
 
@@ -54,7 +55,7 @@ struct playlistSnippet{
 	char *description;
 //	char **thumbnails;
 	char *channelTitle;
-	char *defaultLanguage;
+	char defaultLanguage[4];
 //	char **localized;
 
 };

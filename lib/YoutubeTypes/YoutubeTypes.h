@@ -17,8 +17,10 @@
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
 #define YTAPI_PLAYLIST_ENDPOINT "/youtube/v3/playlists"
+#define YTAPI_PLAYLIST_ITEMS_ENDPOINT "/youtube/v3/playlistItems"
 
 #define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
+#define YTAPI_PLAYLIST_ITEMS_REQUEST_FORMAT "%s?part=%s&playlistId=%s&key=%s"
 
 #define YTAPI_PART_STATISTICS "statistics"
 #define YTAPI_PART_CONTENTDETAILS "contentDetails"
@@ -40,7 +42,9 @@ enum operation{
 
 	playlistListStatus,
 	playlistListContentDetails,
-	playlistListSnippet
+	playlistListSnippet,
+
+	playlistItemsListContentDetails
 };
 
 
@@ -51,6 +55,7 @@ struct playlistItemsConfiguration{
 // 	uint8_t resultsPerPage; should be YT_PLAYLIST_ITEM_RESULTS_PER_PAGE 
 
 	uint16_t currentPage;
+	uint8_t currentPageLastValidPos; // last valid data entry on page
 	char currentPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
 
 	char nextPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";

@@ -47,4 +47,7 @@ class YoutubePlaylist{
         bool parsePlaylistStatus();
         bool parsePlaylistContentDetails();
         bool parsePlaylistSnippet();
+
+        bool getPlaylistItemsInitialConfig();
+        bool parsePlaylistItemsContentDetails();
 };

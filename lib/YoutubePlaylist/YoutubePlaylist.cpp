@@ -14,6 +14,7 @@ YoutubePlaylist::~YoutubePlaylist(){
     freePlaylistSnippet();
     freePlaylistContentDetails();
     freePlaylistStatus();
+    freePlaylistItemsConfig();
 }
 
 
@@ -249,7 +250,6 @@ bool YoutubePlaylist::parsePlaylistContentDetails(){
 }
 
 
-
 /**
  * @brief  Fetches playlist snippet of the set playlist id.
  * 
@@ -269,6 +269,7 @@ bool YoutubePlaylist::getPlaylistSnippet(){
 
     return false;
 }
+
 
 /**
  * @brief Parses the response of the api request to retrieve the playlist content details.
@@ -311,6 +312,115 @@ bool YoutubePlaylist::parsePlaylistSnippet(){
 
         snip = newPlaylistSnippet;
         snipSet = true;
+		wasSuccessful = true;
+    }
+	else{
+		Serial.print(F("deserializeJson() failed with code "));
+		Serial.println(error.c_str());
+	}
+
+    apiObj->closeClient();
+    return wasSuccessful;
+}
+
+
+/**
+ * @brief Gets the the first page of playlistItems. Initialises the playlistItemsConfig and the first page of data.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::getPlaylistItemsInitialConfig(){
+
+    if(playlistItemsConfig || itemsConfigSet){
+        Serial.println("playlistItemsConfig is not supposed to be set already!");
+        return false;
+    }
+
+    // unlike other fetching methods, the config is only set once and then modified
+    playlistItemsConfiguration *newConfig = (playlistItemsConfiguration*) malloc(sizeof(playlistItemsConfiguration));
+    playlistItemsConfig = newConfig;
+    itemsConfigSet = true;
+
+    char command[150];
+    YoutubeApi::createRequestString(playlistItemsListContentDetails, command, playlistId);
+    int httpStatus = apiObj->sendGetToYoutube(command);
+
+    if(httpStatus == 200){
+        return parsePlaylistItemsContentDetails();
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Parses a page of playlistItems:contentDetails. It also modifies values of playlistItemsConfig.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::parsePlaylistItemsContentDetails(){
+    bool wasSuccessful = false;
+
+	// Get from https://arduinojson.org/v6/assistant/
+	const size_t bufferSize = 600;     
+
+	DynamicJsonDocument doc(bufferSize);
+
+    StaticJsonDocument<48> filter;
+    filter["nextPageToken"] = true;
+    filter["prevPageToken"] = true;
+    filter["items"][0]["contentDetails"] = true;
+    filter["pageInfo"] = true;
+
+	// Parse JSON object
+	DeserializationError error = deserializeJson(doc, apiObj->client, DeserializationOption::Filter(filter));
+	if (!error){
+
+        if(YoutubeApi::checkEmptyResponse(doc)){
+            Serial.println("Could not find playlistId!");
+            apiObj->closeClient();
+	        return wasSuccessful;
+        }
+
+        uint8_t pos = 0;
+
+        for (JsonObject item : doc["items"].as<JsonArray>()) {
+
+            strcpy(itemsContentDets[pos].videoId ,item["contentDetails"]["videoId"]);
+            itemsContentDets[pos].videoPublishedAt = YoutubeApi::parseUploadDate(item["contentDetails"]["videoPublishedAt"]);
+
+            pos++;
+        }
+
+        playlistItemsConfig->currentPageLastValidPos = pos - 1;
+
+        // if page not full, fill in with dummy data
+        if(pos != YT_PLAYLIST_ITEM_RESULTS_PER_PAGE - 1){
+            for(int i = pos; i < YT_PLAYLIST_ITEM_RESULTS_PER_PAGE; i++){
+                strcpy(itemsContentDets[pos].videoId ,"");
+                itemsContentDets[pos].videoPublishedAt = YoutubeApi::parseUploadDate("1970-01-01T00:00:00Z");
+            }
+        }
+
+        if(doc["nextPageToken"].as<const char*>()){
+            strcpy(playlistItemsConfig->nextPageToken, doc["nextPageToken"].as<const char*>());
+        }else{
+            strcpy(playlistItemsConfig->nextPageToken, "");
+        }
+
+        if(doc["prevPageToken"].as<const char*>()){
+            strcpy(playlistItemsConfig->previousPageToken, doc["prevPageToken"].as<const char*>());
+        }else{
+            strcpy(playlistItemsConfig->previousPageToken, "");
+        }
+      
+        playlistItemsConfig->totalResults = doc["pageInfo"]["totalResults"];
+
+        if(doc["pageInfo"]["resultsPerPage"] != YT_PLAYLIST_ITEM_RESULTS_PER_PAGE){
+            Serial.println("WARNING: Unexpected resultsPerPage!");
+        }
+
+        itemsContentDetsSet = true;
 		wasSuccessful = true;
     }
 	else{

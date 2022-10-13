@@ -113,7 +113,7 @@ bool checkForDefaultPlaylistItemsContentDetails_value(playlistItemsContentDetail
 
 void test_getPlaylistItems_firstPage(){
 
-     if(WiFi.status() != WL_CONNECTED){
+    if(WiFi.status() != WL_CONNECTED){
         TEST_IGNORE_MESSAGE("Could not establish internet connection!");
     }
 
@@ -167,6 +167,39 @@ void test_getPlaylistItems_firstPage(){
     }
 }
 
+void test_getPlaylistItems_secondPage(){
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure dummyClient;
+    YoutubeApi dummyApi(API_KEY, dummyClient);
+
+    YoutubePlaylist uut(&dummyApi, playlistId);
+
+    dummyClient.setInsecure(); 
+
+    bool ret = uut.getPlaylistItemsPage(1);
+
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsConfigSet(), "Expected playlistItemsConfig to be set and configured!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsContentDetsSet(), "Expected a page to be set and configured!");
+
+    playlistItemsConfiguration *uutConfig = uut.playlistItemsConfig;
+
+    if(uutConfig->totalResults > YT_PLAYLIST_ITEM_RESULTS_PER_PAGE){
+        TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch second page, as there are enough items!");
+    }else{
+        TEST_ASSERT_FALSE_MESSAGE(ret, "Should not be able to fetch second page, as there not enough items!");
+        return;
+    }
+
+    TEST_ASSERT_EQUAL_UINT16_MESSAGE(1, uut.playlistItemsConfig->currentPage, "Expected to be on second page");
+
+    TEST_ASSERT_MESSAGE(strcmp("", uutConfig->currentPageToken) != 0, "Expected the current page token to be set, when fetching second page!");
+    TEST_ASSERT_MESSAGE(strcmp("", uutConfig->previousPageToken) != 0, "Expected a previous page token to be set, when fetching second page!");
+}
+
 
 bool establishInternetConnection(){
     WiFi.mode(WIFI_STA);
@@ -198,11 +231,13 @@ void setup(){
 
     strcpy(playlistId, TEST_PLAYLIST_ID_FEW_UPLOADS);
     RUN_TEST(test_getPlaylistItems_firstPage);
+    RUN_TEST(test_getPlaylistItems_secondPage);
 
     Serial.println("Testing now with an playlistId, with more than YT_PLAYLIST_ITEM_RESULTS_PER_PAGE items");
 
     strcpy(playlistId, TEST_PLAYLIST_ID_MANY_UPLOADS );
     RUN_TEST(test_getPlaylistItems_firstPage);
+    RUN_TEST(test_getPlaylistItems_secondPage);
 
     UNITY_END();
 }

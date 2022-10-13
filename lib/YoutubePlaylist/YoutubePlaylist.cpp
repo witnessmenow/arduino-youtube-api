@@ -350,25 +350,33 @@ bool YoutubePlaylist::parsePlaylistSnippet(){
 
 
 /**
- * @brief Gets the the first page of playlistItems. Initialises the playlistItemsConfig and the first page of data.
+ * @brief Creates and initiliazes an playlistItems configuration object
  * 
- * @return true on success, false on error
  */
-bool YoutubePlaylist::getPlaylistItemsInitialConfig(){
-
-    if(playlistItemsConfig || itemsConfigSet){
-        Serial.println("playlistItemsConfig is not supposed to be set already!");
-        return false;
-    }
-
-    // unlike other fetching methods, the config is only set once and then modified
+void YoutubePlaylist::setConfig(){
     playlistItemsConfiguration *newConfig = (playlistItemsConfiguration*) malloc(sizeof(playlistItemsConfiguration));
     playlistItemsConfig = newConfig;
     playlistItemsConfig->currentPage = 0;
     itemsConfigSet = true;
+}
 
-    char command[150];
-    YoutubeApi::createRequestString(playlistItemsListContentDetails, command, playlistId);
+/**
+ * @brief Gets a page of playlistItems. A page token can be passed.
+ * 
+ * @return true on success, false on error
+ */
+bool YoutubePlaylist::getPlaylistItemsContentDetails(bool usePageToken, char *pageToken){
+
+    char command[180];
+    char tokenAndPlaylistId[50];
+
+    if(usePageToken){
+        sprintf(tokenAndPlaylistId, "%s&pageToken=%s", playlistId, pageToken);
+    }else{
+        strcpy(tokenAndPlaylistId, playlistId);
+    } 
+
+    YoutubeApi::createRequestString(playlistItemsListContentDetails, command, tokenAndPlaylistId);
     int httpStatus = apiObj->sendGetToYoutube(command);
 
     if(httpStatus == 200){
@@ -472,20 +480,23 @@ bool YoutubePlaylist::getPlaylistItemsPage(int pageNum){
     }
 
     if(!playlistItemsConfig || !itemsContentDetsSet){
-        bool ret = getPlaylistItemsInitialConfig();
+        // if it is the first time, the object fetches thee page, get the first page first
+        setConfig();
+        bool ret = getPlaylistItemsContentDetails(false, "");
 
         if(!ret){return ret;}
-
     }
 
-    if(pageNum == playlistItemsConfig->currentPage){
-        return true;
+    //check if page exists
+    if((int) ceil(((float) playlistItemsConfig->totalResults) / YT_PLAYLIST_ITEM_RESULTS_PER_PAGE) < pageNum){
+        Serial.println("Page number too large!");
+        return false;
     }
 
     int diff = pageNum - playlistItemsConfig->currentPage;
 
     // TODO: add skiping logic => sometimes it is faster to skip to the start and traversed from there 
-    // TODO: when traversing playlist, contentDetails dont need to be parsed
+    // TODO: when traversing playlist, contentDetails dont need to be parsed or fetched
 
     while(diff != 0){
         bool ret;
@@ -514,6 +525,20 @@ bool YoutubePlaylist::getPreviousPlaylistItemsPage(){
 
 
 bool YoutubePlaylist::getNextPlaylistItemsPage(){
-    Serial.println("getNextPlaylistItemsPage() not yet implemented!");
-    return false;
+
+    if(strcmp("", playlistItemsConfig->nextPageToken) == 0){
+        Serial.print("There is no next page!");
+        return false;
+    }
+
+    char nextPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1];
+    strcpy(nextPageToken, playlistItemsConfig->nextPageToken);
+
+    bool ret = getPlaylistItemsContentDetails(true, nextPageToken);
+    if(!ret){return ret;}
+
+    strcpy(playlistItemsConfig->currentPageToken, nextPageToken);
+    playlistItemsConfig->currentPage++;
+
+    return true;
 }

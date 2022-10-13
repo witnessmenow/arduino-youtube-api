@@ -25,8 +25,6 @@ class YoutubePlaylist{
 
         bool getPlaylistItemsPage(int pageNum);
 
-        bool getNextPlaylistItemsPage();
-        bool getPreviousPlaylistItemsPage();
 
         YoutubeApi* getYoutubeApiObj();
 
@@ -58,7 +56,12 @@ class YoutubePlaylist{
         bool parsePlaylistContentDetails();
         bool parsePlaylistSnippet();
 
-        bool getPlaylistItemsInitialConfig();
+        void setConfig();
+
+        bool getPlaylistItemsContentDetails(bool usePageToken, char *pageToken);
+
+        bool getNextPlaylistItemsPage();
+        bool getPreviousPlaylistItemsPage();
 
         bool parsePlaylistItemsContentDetails();       
 };

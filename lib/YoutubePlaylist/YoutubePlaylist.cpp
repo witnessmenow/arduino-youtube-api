@@ -106,11 +106,27 @@ bool YoutubePlaylist::checkPlaylistSnipSet(){return snipSet;}
 
 
 /**
- * @brief Returns the value of the playlistContentDets flag, indicating a valid object.
+ * @brief Returns the value of the itemsConfigSet flag, indicating a valid object.
  * 
  * @return Value of flag.
  */
 bool YoutubePlaylist::checkPlaylistContentDetsSet(){return contentDetsSet;}
+
+
+/**
+ * @brief Returns the value of the itemsConfigSet flag, indicating a valid connfiguration.
+ * 
+ * @return Value of flag.
+ */
+bool YoutubePlaylist::checkItemsConfigSet(){return itemsConfigSet;}
+
+
+/**
+ * @brief Returns the value of the itemsContentDetsSet flag, indicating a valid object.
+ * 
+ * @return Value of flag.
+ */
+bool YoutubePlaylist::checkItemsContentDetsSet(){return itemsContentDetsSet;}
 
 
 /**
@@ -339,6 +355,7 @@ bool YoutubePlaylist::getPlaylistItemsInitialConfig(){
     // unlike other fetching methods, the config is only set once and then modified
     playlistItemsConfiguration *newConfig = (playlistItemsConfiguration*) malloc(sizeof(playlistItemsConfiguration));
     playlistItemsConfig = newConfig;
+    playlistItemsConfig->currentPage = 0;
     itemsConfigSet = true;
 
     char command[150];
@@ -347,6 +364,7 @@ bool YoutubePlaylist::getPlaylistItemsInitialConfig(){
 
     if(httpStatus == 200){
         return parsePlaylistItemsContentDetails();
+
     }
 
     return false;
@@ -362,18 +380,22 @@ bool YoutubePlaylist::parsePlaylistItemsContentDetails(){
     bool wasSuccessful = false;
 
 	// Get from https://arduinojson.org/v6/assistant/
-	const size_t bufferSize = 600;     
-
+	const size_t bufferSize = 2048; 
 	DynamicJsonDocument doc(bufferSize);
 
+/*
+    Can not get the filter to work - for now.
+    It appears the optional parameters (nextPageToken and prevPageToken) break the filter.
+
     StaticJsonDocument<48> filter;
+
     filter["nextPageToken"] = true;
     filter["prevPageToken"] = true;
     filter["items"][0]["contentDetails"] = true;
     filter["pageInfo"] = true;
-
+*/
 	// Parse JSON object
-	DeserializationError error = deserializeJson(doc, apiObj->client, DeserializationOption::Filter(filter));
+	DeserializationError error = deserializeJson(doc, apiObj->client);
 	if (!error){
 
         if(YoutubeApi::checkEmptyResponse(doc)){
@@ -391,14 +413,14 @@ bool YoutubePlaylist::parsePlaylistItemsContentDetails(){
 
             pos++;
         }
-
+        
         playlistItemsConfig->currentPageLastValidPos = pos - 1;
 
         // if page not full, fill in with dummy data
         if(pos != YT_PLAYLIST_ITEM_RESULTS_PER_PAGE - 1){
             for(int i = pos; i < YT_PLAYLIST_ITEM_RESULTS_PER_PAGE; i++){
-                strcpy(itemsContentDets[pos].videoId ,"");
-                itemsContentDets[pos].videoPublishedAt = YoutubeApi::parseUploadDate("1970-01-01T00:00:00Z");
+                strcpy(itemsContentDets[i].videoId ,"");
+                itemsContentDets[i].videoPublishedAt = YoutubeApi::parseUploadDate("1970-01-01T00:00:00Z");
             }
         }
 
@@ -430,4 +452,59 @@ bool YoutubePlaylist::parsePlaylistItemsContentDetails(){
 
     apiObj->closeClient();
     return wasSuccessful;
+}
+
+
+bool YoutubePlaylist::getPlaylistItemsPage(int pageNum){
+
+    if(pageNum < 0){
+        Serial.println("Page number must be greater than zero!");
+        return false;
+    }
+
+    if(!playlistItemsConfig || !itemsContentDetsSet){
+        bool ret = getPlaylistItemsInitialConfig();
+
+        if(!ret){return ret;}
+
+    }
+
+    if(pageNum == playlistItemsConfig->currentPage){
+        return true;
+    }
+
+    int diff = pageNum - playlistItemsConfig->currentPage;
+
+    // TODO: add skiping logic => sometimes it is faster to skip to the start and traversed from there 
+    // TODO: when traversing playlist, contentDetails dont need to be parsed
+
+    while(diff != 0){
+        bool ret;
+
+        if(diff > 0){
+            ret = getNextPlaylistItemsPage();
+            diff--;
+        }else{
+            ret = getPreviousPlaylistItemsPage();
+            diff++;
+        }
+
+        if(!ret){
+                Serial.println("Error traversing!");
+                return ret;
+            }
+    }
+    return true;    
+}
+
+
+bool YoutubePlaylist::getPreviousPlaylistItemsPage(){
+    Serial.println("getPreviousPlaylistItemsPage() not yet implemented!");
+    return false;
+}
+
+
+bool YoutubePlaylist::getNextPlaylistItemsPage(){
+    Serial.println("getNextPlaylistItemsPage() not yet implemented!");
+    return false;
 }

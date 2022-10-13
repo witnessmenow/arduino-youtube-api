@@ -14,11 +14,19 @@ class YoutubePlaylist{
         bool checkPlaylistSnipSet();
         bool checkPlaylistContentDetsSet();
 
+        bool checkItemsConfigSet();
+        bool checkItemsContentDetsSet();
+
         const char* getPlaylistId();
 
         bool getPlaylistStatus();
         bool getPlaylistContentDetails();
         bool getPlaylistSnippet();
+
+        bool getPlaylistItemsPage(int pageNum);
+
+        bool getNextPlaylistItemsPage();
+        bool getPreviousPlaylistItemsPage();
 
         playlistSnippet *snip = NULL;
         playlistContentDetails *contentDets = NULL;
@@ -27,11 +35,11 @@ class YoutubePlaylist{
         // "caches" a page of playlistItems
         playlistItemsContentDetails itemsContentDets[YT_PLAYLIST_ITEM_RESULTS_PER_PAGE];
         
+        playlistItemsConfiguration *playlistItemsConfig = NULL;
     private:
 
         char playlistId[YT_PLAYLISTID_LEN + 1];
         YoutubeApi *apiObj = NULL;
-        playlistItemsConfiguration *playlistItemsConfig = NULL;
 
         bool snipSet = false;
         bool contentDetsSet = false;
@@ -49,5 +57,6 @@ class YoutubePlaylist{
         bool parsePlaylistSnippet();
 
         bool getPlaylistItemsInitialConfig();
-        bool parsePlaylistItemsContentDetails();
+
+        bool parsePlaylistItemsContentDetails();       
 };

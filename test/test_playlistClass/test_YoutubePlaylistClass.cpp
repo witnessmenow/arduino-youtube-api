@@ -8,6 +8,8 @@
 
 #define MAX_WIFI_RETRIES 10
 
+char playlistId[YT_PLAYLISTID_LEN + 1];
+
 void test_constructDestruct_simple(){
 
     WiFiClientSecure dummyClient;
@@ -93,6 +95,79 @@ void test_getPlaylistSnippet_simple(){
 }
 
 
+/**
+ * @brief Checks if the given playlistItem is valid, or a "filler" set with default values
+ * 
+ * @param c playlistItem to check
+ * @return returns true, if default values were detected. Otherwise returns false
+ */
+bool checkForDefaultPlaylistItemsContentDetails_value(playlistItemsContentDetails *c){
+
+    if(!strcmp(c->videoId, "") && c->videoPublishedAt.tm_year == 70){
+        return true;
+    }
+
+    return false;
+}
+
+
+void test_getPlaylistItems_firstPage(){
+
+     if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure dummyClient;
+    YoutubeApi dummyApi(API_KEY, dummyClient);
+
+    YoutubePlaylist uut(&dummyApi, playlistId);
+
+    dummyClient.setInsecure(); 
+
+    bool ret = uut.getPlaylistItemsPage(0);
+
+    TEST_ASSERT_TRUE_MESSAGE(ret, "Expected to be able to get first PlaylistItemsPage");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsConfigSet(), "Expected the configuration flag to be set!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsContentDetsSet(), "Expected the data flag to be set!");
+
+    TEST_ASSERT_MESSAGE(uut.playlistItemsConfig->currentPage == 0, "Expected to be on first page");
+
+    playlistItemsConfiguration *uutConfig = uut.playlistItemsConfig;
+    
+
+    if(uutConfig->totalResults < YT_PLAYLIST_ITEM_RESULTS_PER_PAGE){
+        TEST_ASSERT_EQUAL_STRING_MESSAGE("", uutConfig->nextPageToken, "Did not expect a next page token to be set, when results fit into one page!");
+        TEST_ASSERT_EQUAL_STRING_MESSAGE("", uutConfig->previousPageToken, "Did not expect a previous page token to be set, when feetching first page!");
+
+        TEST_ASSERT_EQUAL_UINT8_MESSAGE(uutConfig->totalResults - 1, uutConfig->currentPageLastValidPos, "Expected amount of total results correlating with lastValidPage position!");
+
+    }else{ // full page 
+
+        if(uutConfig->totalResults == YT_PLAYLIST_ITEM_RESULTS_PER_PAGE){
+            TEST_ASSERT_MESSAGE(strcmp(uutConfig->nextPageToken, "") == 0, "Expected no next page token, as all results fit into one page!"); // Couldnt test this case.
+        }else{
+            TEST_ASSERT_MESSAGE(strcmp(uutConfig->nextPageToken, "") != 0, "Expected a next page token to be set!");
+        }
+
+        TEST_ASSERT_EQUAL_UINT8_MESSAGE(YT_PLAYLIST_ITEM_RESULTS_PER_PAGE - 1, uutConfig->currentPageLastValidPos, "Expected page to be filed!");
+    }
+
+    // Testing if default values are set 
+   for(int i = 0; i < YT_PLAYLIST_ITEM_RESULTS_PER_PAGE; i++){
+
+            if(i > uutConfig->currentPageLastValidPos){
+                ret = checkForDefaultPlaylistItemsContentDetails_value(&uut.itemsContentDets[i]);
+                TEST_ASSERT_TRUE_MESSAGE(ret, "Expected a default value!");
+            }else{
+                ret = checkForDefaultPlaylistItemsContentDetails_value(&uut.itemsContentDets[i]);
+                TEST_ASSERT_EQUAL_MESSAGE(strlen(uut.itemsContentDets[i].videoId), YT_VIDEOID_LEN, "Expected other length of videoId string!");
+                TEST_ASSERT_GREATER_OR_EQUAL_INT_MESSAGE(104, uut.itemsContentDets[i].videoPublishedAt.tm_year, "Video upload date should be after 2004");
+                TEST_ASSERT_FALSE_MESSAGE(ret, "Did not expect filler values on full page!");
+            }
+    }
+}
+
+
 bool establishInternetConnection(){
     WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
@@ -120,6 +195,14 @@ void setup(){
     RUN_TEST(test_getPlaylistStatus_simple);
     RUN_TEST(test_getPlaylistContentDetails_simple);
     RUN_TEST(test_getPlaylistSnippet_simple);
+
+    strcpy(playlistId, TEST_PLAYLIST_ID_FEW_UPLOADS);
+    RUN_TEST(test_getPlaylistItems_firstPage);
+
+    Serial.println("Testing now with an playlistId, with more than YT_PLAYLIST_ITEM_RESULTS_PER_PAGE items");
+
+    strcpy(playlistId, TEST_PLAYLIST_ID_MANY_UPLOADS );
+    RUN_TEST(test_getPlaylistItems_firstPage);
 
     UNITY_END();
 }

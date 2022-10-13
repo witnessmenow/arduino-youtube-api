@@ -136,6 +136,15 @@ bool YoutubePlaylist::checkItemsContentDetsSet(){return itemsContentDetsSet;}
  */
 const char* YoutubePlaylist::getPlaylistId(){return playlistId;}
 
+
+/**
+ * @brief Returns the YoutubeApi object of the object.
+ * 
+ * @return pointer to YoutubeApi object
+ */
+YoutubeApi* YoutubePlaylist::getYoutubeApiObj(){return apiObj;}
+
+
 /**
  * @brief  Fetches playlist status of the set playlist id.
  * 

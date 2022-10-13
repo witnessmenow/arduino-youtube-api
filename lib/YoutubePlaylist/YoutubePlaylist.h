@@ -28,6 +28,8 @@ class YoutubePlaylist{
         bool getNextPlaylistItemsPage();
         bool getPreviousPlaylistItemsPage();
 
+        YoutubeApi* getYoutubeApiObj();
+
         playlistSnippet *snip = NULL;
         playlistContentDetails *contentDets = NULL;
         playlistStatus *status = NULL;

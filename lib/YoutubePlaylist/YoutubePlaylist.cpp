@@ -519,8 +519,22 @@ bool YoutubePlaylist::getPlaylistItemsPage(int pageNum){
 
 
 bool YoutubePlaylist::getPreviousPlaylistItemsPage(){
-    Serial.println("getPreviousPlaylistItemsPage() not yet implemented!");
-    return false;
+    
+    if(strcmp("", playlistItemsConfig->previousPageToken) == 0){
+        Serial.print("There is no previous page!");
+        return false;
+    }
+
+    char prevPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1];
+    strcpy(prevPageToken, playlistItemsConfig->previousPageToken);
+
+    bool ret = getPlaylistItemsContentDetails(true, prevPageToken);
+    if(!ret){return ret;}
+
+    strcpy(playlistItemsConfig->currentPageToken, prevPageToken);
+    playlistItemsConfig->currentPage--;
+
+    return true;
 }
 
 

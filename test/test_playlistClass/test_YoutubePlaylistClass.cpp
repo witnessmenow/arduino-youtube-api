@@ -201,6 +201,52 @@ void test_getPlaylistItems_secondPage(){
 }
 
 
+void test_getPlaylistItems_first_second_first_page(){
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+    WiFiClientSecure dummyClient;
+    YoutubeApi dummyApi(API_KEY, dummyClient);
+
+    YoutubePlaylist uut(&dummyApi, playlistId);
+
+    dummyClient.setInsecure(); 
+
+    bool ret = uut.getPlaylistItemsPage(1);
+
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsConfigSet(), "Expected playlistItemsConfig to be set and configured!");
+    TEST_ASSERT_TRUE_MESSAGE(uut.checkItemsContentDetsSet(), "Expected a page to be set and configured!");
+
+    playlistItemsConfiguration *uutConfig = uut.playlistItemsConfig;
+
+    if(uutConfig->totalResults > YT_PLAYLIST_ITEM_RESULTS_PER_PAGE){
+        TEST_ASSERT_TRUE_MESSAGE(ret, "Should be able to fetch second page, as there are enough items!");
+    }else{
+        TEST_ASSERT_FALSE_MESSAGE(ret, "Should not be able to fetch second page, as there not enough items!");
+        return;
+    }
+
+    TEST_ASSERT_EQUAL_UINT16_MESSAGE(1, uut.playlistItemsConfig->currentPage, "Expected to be on second page");
+
+    TEST_ASSERT_MESSAGE(strcmp("", uutConfig->currentPageToken) != 0, "Expected the current page token to be set, when fetching second page!");
+    TEST_ASSERT_MESSAGE(strcmp("", uutConfig->previousPageToken) != 0, "Expected a previous page token to be set, when fetching second page!");
+
+    char secondPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1];
+    strcpy(secondPageToken, uut.playlistItemsConfig->currentPageToken);
+
+    ret = uut.getPlaylistItemsPage(0);
+
+    TEST_ASSERT_EQUAL_UINT16_MESSAGE(0, uut.playlistItemsConfig->currentPage, "Expected to be on first page");
+    TEST_ASSERT_MESSAGE(strcmp(secondPageToken, uutConfig->currentPageToken) != 0, "Current token should not match token of second page!");
+    TEST_ASSERT_MESSAGE(strcmp(secondPageToken, uutConfig->nextPageToken) == 0, "Next token should match token of second page!");
+    TEST_ASSERT_MESSAGE(strcmp("", uutConfig->currentPageToken) != 0, "Expected the current page token to be set, when fetching second page!");
+
+
+
+}
+
+
 bool establishInternetConnection(){
     WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
@@ -238,6 +284,7 @@ void setup(){
     strcpy(playlistId, TEST_PLAYLIST_ID_MANY_UPLOADS );
     RUN_TEST(test_getPlaylistItems_firstPage);
     RUN_TEST(test_getPlaylistItems_secondPage);
+    RUN_TEST(test_getPlaylistItems_first_second_first_page);
 
     UNITY_END();
 }

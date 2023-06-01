@@ -482,7 +482,7 @@ bool YoutubePlaylist::getPlaylistItemsPage(int pageNum){
     if(!playlistItemsConfig || !itemsContentDetsSet){
         // if it is the first time, the object fetches thee page, get the first page first
         setConfig();
-        bool ret = getPlaylistItemsContentDetails(false, "");
+        bool ret = getPlaylistItemsContentDetails(false, NULL);
 
         if(!ret){return ret;}
     }

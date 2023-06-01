@@ -40,6 +40,8 @@
 // (search for "youtube" in the Arduino Library Manager)
 #include "YoutubeApi.h"
 #include "YoutubeChannel.h"
+#include "YoutubePlaylist.h"
+#include "YoutubeVideo.h"
 
 // Library used for parsing Json from the API responses
 // https://github.com/bblanchon/ArduinoJson
@@ -230,6 +232,35 @@ void loop() {
 		Serial.println("-------------------------------------------------");
 	}
 
+	if(channel.checkChannelContentDetailsSet() && channel.checkChannelSnipSet()){
+		Serial.print("\n\nFetching last five videos of ");
+		Serial.println(channel.channelSnip->title);
+
+		YoutubePlaylist recentVideos = YoutubePlaylist(&api, channel.channelContentDets->relatedPlaylistsUploads);
+		recentVideos.getPlaylistItemsPage(0);
+
+		playlistItemsContentDetails *page = recentVideos.itemsContentDets;
+
+		for(int i = 0; i < YT_PLAYLIST_ITEM_RESULTS_PER_PAGE; i++){
+			char *videoId = page[i].videoId;
+
+			if(!strcmp("", videoId)){
+				break;
+			}	
+
+			YoutubeVideo vid = YoutubeVideo(videoId, &api);
+			if(vid.getVideoSnippet() && vid.getVideoStatistics()){
+				Serial.print("videoId: ");
+				Serial.print(videoId);
+				Serial.print(" | \"");
+				Serial.print(vid.videoSnip->title);
+				Serial.print("\" | Views: ");
+				Serial.println(vid.videoStats->viewCount);
+			}
+		}
+	}
+
+
 	Serial.print("\nRefreshing in ");
 	Serial.print(timeBetweenRequestGroup / 1000.0);
 	Serial.println(" seconds...");
@@ -244,5 +275,5 @@ void loop() {
 			Serial.println(videoId);
 			break;
 		}
-	}	
+	}
 }

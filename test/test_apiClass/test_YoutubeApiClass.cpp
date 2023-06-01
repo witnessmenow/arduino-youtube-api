@@ -89,6 +89,57 @@ void test_createRequestString_channelContentDetails_simple(){
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!");    
 }
 
+void test_createRequestString_playlistStatus_simple(){
+    WiFiClientSecure client;
+    YoutubeApi uut(API_KEY, client);
+
+    char uutCommand[150];
+    char expectedRes[150];
+    sprintf(expectedRes, "/youtube/v3/playlists?part=status&id=%s&key=%s", TEST_PLAYLIST_ID, API_KEY);
+    YoutubeApi::createRequestString(playlistListStatus, uutCommand, TEST_PLAYLIST_ID);
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!"); 
+}
+
+
+void test_createRequestString_playlistContentDetails_simple(){
+    WiFiClientSecure client;
+    YoutubeApi uut(API_KEY, client);
+
+    char uutCommand[150];
+    char expectedRes[150];
+    sprintf(expectedRes, "/youtube/v3/playlists?part=contentDetails&id=%s&key=%s", TEST_PLAYLIST_ID, API_KEY);
+    YoutubeApi::createRequestString(playlistListContentDetails, uutCommand, TEST_PLAYLIST_ID);
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!"); 
+}
+
+
+void test_createRequestString_playlistSnippet_simple(){
+    WiFiClientSecure client;
+    YoutubeApi uut(API_KEY, client);
+
+    char uutCommand[150];
+    char expectedRes[150];
+    sprintf(expectedRes, "/youtube/v3/playlists?part=snippet&id=%s&key=%s", TEST_PLAYLIST_ID, API_KEY);
+    YoutubeApi::createRequestString(playlistListSnippet, uutCommand, TEST_PLAYLIST_ID);
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!"); 
+}
+
+
+void test_createRequestString_playlistItemsContentDetails_simple(){
+    WiFiClientSecure client;
+    YoutubeApi uut(API_KEY, client);
+
+    char uutCommand[150];
+    char expectedRes[150];
+    sprintf(expectedRes, "/youtube/v3/playlistItems?part=contentDetails&playlistId=%s&key=%s", TEST_PLAYLIST_ID, API_KEY);
+    YoutubeApi::createRequestString(playlistItemsListContentDetails, uutCommand, TEST_PLAYLIST_ID);
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expectedRes, uutCommand, "The request string is not correct!"); 
+}
+
 
 void test_allocAndCopy_pos_NULL(){
 
@@ -141,6 +192,10 @@ void setup()
     RUN_TEST(test_createRequestString_channelStatistics_simple);
     RUN_TEST(test_createRequestString_channelSnippet_simple);
     RUN_TEST(test_createRequestString_channelContentDetails_simple);
+    RUN_TEST(test_createRequestString_playlistStatus_simple);
+    RUN_TEST(test_createRequestString_playlistContentDetails_simple);
+    RUN_TEST(test_createRequestString_playlistSnippet_simple);
+    RUN_TEST(test_createRequestString_playlistItemsContentDetails_simple);
 
     RUN_TEST(test_allocAndCopy_pos_NULL);
     RUN_TEST(test_allocAndCopy_data_NULL);

@@ -6,6 +6,9 @@
 
 #define YT_VIDEOID_LEN 11
 #define YT_CHANNELID_LEN 24
+#define YT_PLAYLISTID_LEN 24
+#define YT_PLALIST_ITEMS_PAGE_TOKEN_LEN 14
+#define YT_PLAYLIST_ITEM_RESULTS_PER_PAGE 5
 
 #define YTAPI_HOST "www.googleapis.com"
 #define YTAPI_SSL_PORT 443
@@ -13,7 +16,17 @@
 
 #define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
 #define YTAPI_VIDEO_ENDPOINT "/youtube/v3/videos"
+#define YTAPI_PLAYLIST_ENDPOINT "/youtube/v3/playlists"
+#define YTAPI_PLAYLIST_ITEMS_ENDPOINT "/youtube/v3/playlistItems"
+
 #define YTAPI_REQUEST_FORMAT "%s?part=%s&id=%s&key=%s"
+#define YTAPI_PLAYLIST_ITEMS_REQUEST_FORMAT "%s?part=%s&playlistId=%s&key=%s"
+
+#define YTAPI_PART_STATISTICS "statistics"
+#define YTAPI_PART_CONTENTDETAILS "contentDetails"
+#define YTAPI_PART_SNIPPET "snippet"
+#define YTAPI_PART_STATUS "status"
+
 #define YTAPI_KEY_LEN 45
 
 enum operation{
@@ -25,11 +38,55 @@ enum operation{
 
 	channelListStats,
 	channelListSnippet,
-	channelListContentDetails
+	channelListContentDetails,
+
+	playlistListStatus,
+	playlistListContentDetails,
+	playlistListSnippet,
+
+	playlistItemsListContentDetails
 };
 
 
-// not implemented data fields are commented
+// not implemented data fields are commented out
+
+struct playlistItemsConfiguration{
+	uint16_t totalResults;
+// 	uint8_t resultsPerPage; should be YT_PLAYLIST_ITEM_RESULTS_PER_PAGE 
+
+	uint16_t currentPage;
+	uint8_t currentPageLastValidPos; // last valid data entry on page
+	char currentPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+
+	char nextPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+	char previousPageToken[YT_PLALIST_ITEMS_PAGE_TOKEN_LEN + 1] = "";
+};
+
+struct playlistItemsContentDetails{
+	char videoId[YT_VIDEOID_LEN + 1] = "";
+	tm videoPublishedAt;
+};
+
+struct playlistContentDetails{
+	uint32_t itemCount;
+};
+
+struct playlistSnippet{
+	tm publishedAt;
+	char *channelId;
+	char *title;
+	char *description;
+//	char **thumbnails;
+	char *channelTitle;
+	char defaultLanguage[4];
+//	char **localized;
+
+};
+
+struct playlistStatus{
+	char *privacyStatus;
+};
+
 
 struct channelStatistics {
 	uint64_t viewCount;
@@ -68,7 +125,7 @@ struct videoContentDetails{
 
 
 struct videoStatistics {
-	uint64_t viewCount; // required for popular videos. (Baby Shark would else overflow xD)
+	uint64_t viewCount; // uint64_t required for popular videos. (Baby Shark would else overflow xD)
 	uint32_t commentCount;
 	uint32_t likeCount;
 //	long favourites;	

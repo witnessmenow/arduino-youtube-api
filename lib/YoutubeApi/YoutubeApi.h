@@ -28,41 +28,37 @@
 #define YoutubeApi_h
 
 #include <Arduino.h>
+#include "YoutubeTypes.h"
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include <Client.h>
-
-#define YTAPI_HOST "www.googleapis.com"
-#define YTAPI_SSL_PORT 443
-#define YTAPI_TIMEOUT 1500
-
-#define YTAPI_CHANNEL_ENDPOINT "/youtube/v3/channels"
-
-struct channelStatistics {
-	long viewCount;
-	long commentCount;  /* DEPRECATED */
-	long subscriberCount;
-	bool hiddenSubscriberCount;
-	long videoCount;
-};
 
 class YoutubeApi
 {
 	public:
-		YoutubeApi(const char *key, Client &client);
-		YoutubeApi(const String& apiKey, Client& client);
+		YoutubeApi(const char *key, Client &newClient);
+		YoutubeApi(const String& key, Client& newClient);
+
+		static bool createRequestString(int mode, char *command, const char *id);
+
 		int sendGetToYoutube(const char *command);
 		int sendGetToYoutube(const String& command);
-		bool getChannelStatistics(const char *channelId);
-		bool getChannelStatistics(const String& channelId);
-		channelStatistics channelStats;
+
+		static int allocAndCopy(char **pos, const char *data);
+		static tm parseUploadDate(const char *dateTime);
+		static tm parseDuration(const char *duration);
+		static bool checkEmptyResponse(DynamicJsonDocument response);
+		
 		bool _debug = false;
+		Client &client;
+
+		void closeClient();	
 
 	private:
-		const String apiKey;
-		Client &client;
+		static char apiKey[YTAPI_KEY_LEN + 1];
 		int getHttpStatusCode();
+
 		void skipHeaders();
-		void closeClient();
 };
 
 #endif

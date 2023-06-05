@@ -10,7 +10,13 @@
 YoutubeApi	KEYWORD1
 
 # API Data
-channelStatistics	KEYWORD1
+channelStatistics   KEYWORD1
+videoStatistics KEYWORD1
+videoContentDetails KEYWORD1
+videoStatistics KEYWORD1
+videoStatus KEYWORD1
+videoSnippet    KEYWORD1
+operation   KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -19,6 +25,10 @@ channelStatistics	KEYWORD1
 # API Member Functions
 sendGetToYoutube	KEYWORD2
 getChannelStatistics	KEYWORD2
+getVideoStatistics  KEYWORD2
+getContentDetails   KEYWORD2
+getSnippet  KEYWORD2
+getVideoStatus  KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
@@ -32,3 +42,6 @@ getChannelStatistics	KEYWORD2
 YTAPI_HOST	LITERAL1
 YTAPI_SSL_PORT	LITERAL1
 YTAPI_TIMEOUT	LITERAL1
+YTAPI_CHANNEL_ENDPOINT  LITERAL1
+YTAPI_VIDEO_ENDPOINT    LITERAL1
+YTAPI_REQUEST_FORMAT    LITERAL1

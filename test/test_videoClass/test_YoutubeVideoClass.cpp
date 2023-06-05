@@ -13,6 +13,12 @@ const char *invalidIdChar = "123";
 String validIdString = "12345678901";
 String invalidIdString = "123";
 
+void setUp(){
+         if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+}
+
 void test_emptyConstructor()
 {
     YoutubeVideo uut;
@@ -160,10 +166,6 @@ void test_getVideoStats_simple(){
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatistics();
 
@@ -177,10 +179,6 @@ void test_getVideoStats_simple_reset(){
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatistics();
@@ -203,10 +201,6 @@ void test_getVideoSnippet_simple(){
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoSnippet();
 
@@ -220,10 +214,6 @@ void test_getVideoSnippet_simple_reset(){
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoSnippet();
@@ -245,10 +235,6 @@ void test_getVideoStatus_simple(){
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatus();
 
@@ -262,10 +248,6 @@ void test_getVideoStatus_simple_reset(){
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatus();
@@ -289,10 +271,6 @@ void test_getVideoContentDetails_simple(){
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoContentDetails();
 
@@ -306,10 +284,6 @@ void test_getVideoContentDetails_simple_reset(){
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     client.setInsecure();
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoContentDetails();
@@ -333,6 +307,8 @@ void setup()
 
     UNITY_BEGIN();
 
+    establishInternetConnection();
+
     RUN_TEST(test_emptyConstructor);
     RUN_TEST(test_constCharConstructor_simple);
     RUN_TEST(test_constCharConstructor_rejectId);
@@ -352,7 +328,6 @@ void setup()
     RUN_TEST(test_resetInfo_keepYoutubeApi_obj);
 
 
-    establishInternetConnection();
     RUN_TEST(test_getVideoStats_simple);
     delay(100);
     RUN_TEST(test_getVideoStats_simple_reset);

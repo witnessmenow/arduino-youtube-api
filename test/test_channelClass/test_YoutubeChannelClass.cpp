@@ -9,6 +9,13 @@
 #define tooLongChannelId "1234567890123456789012345"
 #define tooShortChannelId "12345678901234567890123"
 
+void setUp(){
+
+    if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+
+}
 
 void test_onlyApiConstructor(){
     WiFiClientSecure client;
@@ -82,10 +89,6 @@ bool establishInternetConnection(){
 
 void test_getChannelStatistics_simple(){
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
@@ -100,10 +103,6 @@ void test_getChannelStatistics_simple(){
 }
 
 void test_getChannelStatistics_simple_reset(){
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
@@ -126,10 +125,6 @@ void test_getChannelStatistics_simple_reset(){
 
 void test_getChannelSnippet_simple(){
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
@@ -144,10 +139,6 @@ void test_getChannelSnippet_simple(){
 }
 
 void test_getChannelContentDetails_simple(){
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
@@ -172,6 +163,8 @@ void setup(){
     Serial.begin(115200);
     UNITY_BEGIN();
 
+    establishInternetConnection();
+
     RUN_TEST(test_onlyApiConstructor);
 
     RUN_TEST(test_charConstructor_validId);
@@ -179,8 +172,6 @@ void setup(){
     RUN_TEST(test_charConstructor_tooLongId);
 
     RUN_TEST(test_resetInfo);
-
-    establishInternetConnection();
 
     RUN_TEST(test_getChannelStatistics_simple);
     RUN_TEST(test_getChannelStatistics_simple_reset);

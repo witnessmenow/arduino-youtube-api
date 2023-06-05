@@ -10,6 +10,13 @@
 
 char playlistId[YT_PLAYLISTID_LEN + 1];
 
+void setUp(){
+         if(WiFi.status() != WL_CONNECTED){
+        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
+    }
+}
+
+
 void test_constructDestruct_simple(){
 
     WiFiClientSecure dummyClient;
@@ -50,10 +57,6 @@ void test_getPlaylistStatus_simple(){
 
 void test_getPlaylistContentDetails_simple(){
 
-     if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     WiFiClientSecure dummyClient;
     YoutubeApi dummyApi(API_KEY, dummyClient);
 
@@ -70,10 +73,6 @@ void test_getPlaylistContentDetails_simple(){
 
 
 void test_getPlaylistSnippet_simple(){
-
-     if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     WiFiClientSecure dummyClient;
     YoutubeApi dummyApi(API_KEY, dummyClient);
@@ -112,10 +111,6 @@ bool checkForDefaultPlaylistItemsContentDetails_value(playlistItemsContentDetail
 
 
 void test_getPlaylistItems_firstPage(){
-
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     WiFiClientSecure dummyClient;
     YoutubeApi dummyApi(API_KEY, dummyClient);
@@ -169,10 +164,6 @@ void test_getPlaylistItems_firstPage(){
 
 void test_getPlaylistItems_secondPage(){
 
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
     WiFiClientSecure dummyClient;
     YoutubeApi dummyApi(API_KEY, dummyClient);
 
@@ -202,9 +193,6 @@ void test_getPlaylistItems_secondPage(){
 
 
 void test_getPlaylistItems_first_second_first_page(){
-    if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
 
     WiFiClientSecure dummyClient;
     YoutubeApi dummyApi(API_KEY, dummyClient);
@@ -269,8 +257,9 @@ void setup(){
 
     UNITY_BEGIN();
 
-    RUN_TEST(test_constructDestruct_simple);
     establishInternetConnection();
+
+    RUN_TEST(test_constructDestruct_simple);
     RUN_TEST(test_getPlaylistStatus_simple);
     RUN_TEST(test_getPlaylistContentDetails_simple);
     RUN_TEST(test_getPlaylistSnippet_simple);

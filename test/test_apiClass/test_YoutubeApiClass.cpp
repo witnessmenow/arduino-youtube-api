@@ -5,9 +5,14 @@
 #include "YoutubeTypes.h"
 #include <WiFiClientSecure.h>
 
+WiFiClientSecure client;
+
+void setUp(){
+    client = WiFiClientSecure();
+    client.setInsecure();
+}
 
 void test_createRequestString_videoStats_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut("123", client);
 
     char uutCommand[150];
@@ -18,7 +23,6 @@ void test_createRequestString_videoStats_simple(){
 }
 
 void test_createRequestString_videoStats_length40(){
-    WiFiClientSecure client;
     char Length40ApiKey[41] = "1234567890123456789012345678901234567890";
     YoutubeApi uut(Length40ApiKey, client);
 
@@ -30,7 +34,6 @@ void test_createRequestString_videoStats_length40(){
 }
 
 void test_createRequestString_videoStats_length46(){
-    WiFiClientSecure client;
     char length41ApiKey[47] = "1234567890123456789012345678901234567890123456";
     YoutubeApi uut(length41ApiKey, client);
 
@@ -42,7 +45,6 @@ void test_createRequestString_videoStats_length46(){
 }
 
 void test_createRequestString_videoSnip_length40(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -54,7 +56,6 @@ void test_createRequestString_videoSnip_length40(){
 }
 
 void test_createRequestString_channelStatistics_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -66,7 +67,6 @@ void test_createRequestString_channelStatistics_simple(){
 }
 
 void test_createRequestString_channelSnippet_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -78,7 +78,6 @@ void test_createRequestString_channelSnippet_simple(){
 }
 
 void test_createRequestString_channelContentDetails_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -90,7 +89,6 @@ void test_createRequestString_channelContentDetails_simple(){
 }
 
 void test_createRequestString_playlistStatus_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -103,7 +101,6 @@ void test_createRequestString_playlistStatus_simple(){
 
 
 void test_createRequestString_playlistContentDetails_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -116,7 +113,6 @@ void test_createRequestString_playlistContentDetails_simple(){
 
 
 void test_createRequestString_playlistSnippet_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];
@@ -129,7 +125,6 @@ void test_createRequestString_playlistSnippet_simple(){
 
 
 void test_createRequestString_playlistItemsContentDetails_simple(){
-    WiFiClientSecure client;
     YoutubeApi uut(API_KEY, client);
 
     char uutCommand[150];

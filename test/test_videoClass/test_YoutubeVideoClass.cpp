@@ -13,10 +13,16 @@ const char *invalidIdChar = "123";
 String validIdString = "12345678901";
 String invalidIdString = "123";
 
+WiFiClientSecure client;
+
 void setUp(){
-         if(WiFi.status() != WL_CONNECTED){
+
+    if(WiFi.status() != WL_CONNECTED){
         TEST_IGNORE_MESSAGE("Could not establish internet connection!");
     }
+
+    client = WiFiClientSecure();
+    client.setInsecure();
 }
 
 void test_emptyConstructor()
@@ -132,7 +138,6 @@ void test_resetInfo_afterConstruct(){
 
 
 void test_resetInfo_keepYoutubeApi_obj(){
-    WiFiClientSecure client;
     YoutubeApi apiObject(API_KEY, client);
     YoutubeApi *pointerToObj = &apiObject;
     YoutubeVideo uut(validIdChar, pointerToObj);
@@ -161,11 +166,7 @@ bool establishInternetConnection(){
 
 
 void test_getVideoStats_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatistics();
 
@@ -175,11 +176,7 @@ void test_getVideoStats_simple(){
 }
 
 void test_getVideoStats_simple_reset(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatistics();
 
@@ -196,11 +193,7 @@ void test_getVideoStats_simple_reset(){
 
 
 void test_getVideoSnippet_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoSnippet();
 
@@ -210,11 +203,7 @@ void test_getVideoSnippet_simple(){
 }
 
 void test_getVideoSnippet_simple_reset(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoSnippet();
 
@@ -230,11 +219,7 @@ void test_getVideoSnippet_simple_reset(){
 
 
 void test_getVideoStatus_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatus();
 
@@ -244,11 +229,7 @@ void test_getVideoStatus_simple(){
 }
 
 void test_getVideoStatus_simple_reset(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoStatus();
 
@@ -266,11 +247,7 @@ void test_getVideoStatus_simple_reset(){
 
 
 void test_getVideoContentDetails_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoContentDetails();
 
@@ -280,11 +257,7 @@ void test_getVideoContentDetails_simple(){
 }
 
 void test_getVideoContentDetails_simple_reset(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
-    client.setInsecure();
-
     YoutubeVideo uut("USKD3vPD6ZA", &apiObj);
     bool ret = uut.getVideoContentDetails();
 

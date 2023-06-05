@@ -9,16 +9,19 @@
 #define tooLongChannelId "1234567890123456789012345"
 #define tooShortChannelId "12345678901234567890123"
 
+WiFiClientSecure client;
+
 void setUp(){
 
     if(WiFi.status() != WL_CONNECTED){
         TEST_IGNORE_MESSAGE("Could not establish internet connection!");
     }
 
+    client = WiFiClientSecure();
+    client.setInsecure();
 }
 
 void test_onlyApiConstructor(){
-    WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
     YoutubeChannel uut(&apiDummy);
 
@@ -28,7 +31,6 @@ void test_onlyApiConstructor(){
 }
 
 void test_charConstructor_validId(){
-    WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiDummy);
 
@@ -38,7 +40,6 @@ void test_charConstructor_validId(){
 }
 
 void test_charConstructor_tooLongId(){
-    WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
     YoutubeChannel uut(tooLongChannelId, &apiDummy);
 
@@ -48,7 +49,6 @@ void test_charConstructor_tooLongId(){
 }
 
 void test_charConstructor_tooShortId(){
-    WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
     YoutubeChannel uut(tooShortChannelId, &apiDummy);
 
@@ -58,7 +58,6 @@ void test_charConstructor_tooShortId(){
 }
 
 void test_resetInfo(){
-    WiFiClientSecure client;
     YoutubeApi apiDummy("", client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiDummy);
 
@@ -88,12 +87,8 @@ bool establishInternetConnection(){
 }
 
 void test_getChannelStatistics_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
-
-    client.setInsecure();
 
     bool ret = uut.getChannelStatistics();
 
@@ -103,12 +98,8 @@ void test_getChannelStatistics_simple(){
 }
 
 void test_getChannelStatistics_simple_reset(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
-
-    client.setInsecure();
 
     bool ret = uut.getChannelStatistics();
 
@@ -124,12 +115,8 @@ void test_getChannelStatistics_simple_reset(){
 }
 
 void test_getChannelSnippet_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
-
-    client.setInsecure();
 
     bool ret = uut.getChannelSnippet();
 
@@ -139,13 +126,9 @@ void test_getChannelSnippet_simple(){
 }
 
 void test_getChannelContentDetails_simple(){
-
-    WiFiClientSecure client;
     YoutubeApi apiObj(API_KEY, client);
     YoutubeChannel uut(TEST_CHANNEL_ID, &apiObj);
-
-    client.setInsecure();
-
+    
     bool ret = uut.getChannelContentDetails();
 
     TEST_ASSERT_TRUE_MESSAGE(ret, "Expected to receive valid response!");

@@ -10,10 +10,16 @@
 
 char playlistId[YT_PLAYLISTID_LEN + 1];
 
+WiFiClientSecure client;
+
 void setUp(){
-         if(WiFi.status() != WL_CONNECTED){
+
+    if(WiFi.status() != WL_CONNECTED){
         TEST_IGNORE_MESSAGE("Could not establish internet connection!");
     }
+
+    client = WiFiClientSecure();
+    client.setInsecure();
 }
 
 
@@ -34,17 +40,8 @@ void test_constructDestruct_simple(){
 }
 
 void test_getPlaylistStatus_simple(){
-
-     if(WiFi.status() != WL_CONNECTED){
-        TEST_IGNORE_MESSAGE("Could not establish internet connection!");
-    }
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, TEST_PLAYLIST_ID);
-
-    dummyClient.setInsecure();
 
     bool ret = uut.getPlaylistStatus();
 
@@ -56,13 +53,8 @@ void test_getPlaylistStatus_simple(){
 
 
 void test_getPlaylistContentDetails_simple(){
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, TEST_PLAYLIST_ID);
-
-    dummyClient.setInsecure(); 
 
     bool ret = uut.getPlaylistContentDetails();
 
@@ -73,13 +65,8 @@ void test_getPlaylistContentDetails_simple(){
 
 
 void test_getPlaylistSnippet_simple(){
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, TEST_PLAYLIST_ID);
-
-    dummyClient.setInsecure(); 
 
     bool ret = uut.getPlaylistSnippet();
 
@@ -111,13 +98,8 @@ bool checkForDefaultPlaylistItemsContentDetails_value(playlistItemsContentDetail
 
 
 void test_getPlaylistItems_firstPage(){
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, playlistId);
-
-    dummyClient.setInsecure(); 
 
     bool ret = uut.getPlaylistItemsPage(0);
 
@@ -163,13 +145,8 @@ void test_getPlaylistItems_firstPage(){
 }
 
 void test_getPlaylistItems_secondPage(){
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, playlistId);
-
-    dummyClient.setInsecure(); 
 
     bool ret = uut.getPlaylistItemsPage(1);
 
@@ -193,13 +170,8 @@ void test_getPlaylistItems_secondPage(){
 
 
 void test_getPlaylistItems_first_second_first_page(){
-
-    WiFiClientSecure dummyClient;
-    YoutubeApi dummyApi(API_KEY, dummyClient);
-
+    YoutubeApi dummyApi(API_KEY, client);
     YoutubePlaylist uut(&dummyApi, playlistId);
-
-    dummyClient.setInsecure(); 
 
     bool ret = uut.getPlaylistItemsPage(1);
 
